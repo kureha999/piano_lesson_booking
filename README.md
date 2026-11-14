@@ -300,11 +300,11 @@ MVPでは、**「保護者が欠席を伝えてから振替を確定するまで
 
 | 分類 | 技術 |
 |---|---|
-| 言語・フレームワーク | Ruby 3.3.6 / Ruby on Rails 7.2 |
+| 言語・フレームワーク | Ruby 3.4.12 / Ruby on Rails 8.1 |
 | フロントエンド | Hotwire（Turbo・Stimulus）、importmap |
 | DB | PostgreSQL 17 |
 | 認証 | Devise |
-| テスト・静的解析 | RSpec、RuboCop（rubocop-rails-omakase）、Brakeman |
+| テスト・静的解析 | RSpec、RuboCop（rubocop-rails-omakase）、Brakeman、bundler-audit |
 | CI/CD | GitHub Actions |
 | インフラ | AWS（EC2・RDS・S3・CloudFront）、Terraform でコード化 |
 | メール | 開発環境：letter_opener_web ／ 本番：Amazon SES |
@@ -391,5 +391,5 @@ http://localhost:3000 で確認できます。
 
 - **1 issue ＝ 1 ブランチ ＝ 1 Pull Request** で進めます。
 - 進み具合は GitHub Projects（Todo／In Progress／Done）で管理します。
-- Pull Request ごとに、GitHub Actions でテスト・RuboCop・Brakeman を自動で実行します。
+- Pull Request ごとに、GitHub Actions でテスト・RuboCop・Brakeman・bundler-audit を自動で実行します。
 - MVPの機能は、マイルストーン「MVP」にまとめています。
