@@ -304,7 +304,7 @@ MVPでは、「保護者が欠席を伝えてから振替を確定するまで�
 | 言語・フレームワーク | Ruby 3.4.12 / Ruby on Rails 8.1 |
 | フロントエンド | Hotwire（Turbo・Stimulus）、importmap |
 | DB | PostgreSQL 17 |
-| 認証 | Devise |
+| 認証 | Devise、devise_invitable（招待メール） |
 | テスト・静的解析 | RSpec、RuboCop（rubocop-rails-omakase）、Brakeman、bundler-audit |
 | CI/CD | GitHub Actions |
 | インフラ | AWS（EC2・RDS・S3・CloudFront）、Terraform でコード化 |
@@ -359,7 +359,7 @@ MVPでは、「保護者が欠席を伝えてから振替を確定するまで�
 | ユーザーと生徒の関係 | 作成済み（[12-3](#12-3-ユーザーと生徒の関係)） |
 | 画面一覧 | 作成済み（[12-4](#12-4-画面一覧)） |
 | 画面遷移図 | 作成済み（[12-5](#12-5-画面遷移図)） |
-| ER図 | 作成予定 |
+| ER図 | 作成済み（[12-6](#12-6-er図)） |
 | インフラ構成図 | 作成予定（AWS公開時） |
 | 月額の運用コスト試算 | 作成予定（AWS公開時） |
 
@@ -628,6 +628,230 @@ flowchart LR
   MAIL_RESET -->|"リンクを開く"| C04
   C04 -->|"「変更する」"| C01
 ```
+
+### 12-6. ER図
+
+#### 設計の方針
+
+| 方針 | 内容 | 理由 |
+|---|---|---|
+| 毎週のレッスンは保存しない | 固定枠（`lesson_slots`）だけを保存し、各回のレッスンの日付はそこから計算する。保存するのは欠席などの**例外だけ** | 何週間先までレコードを作り続ける定期処理が要らない。固定枠を変更しても、先の予定を作り直す必要がない |
+| 固定枠は上書きしない | 曜日や時間を変えるときは、今の枠に適用終了日（`ends_on`）を入れ、新しい枠を作る | 過去の欠席が指している枠の曜日・時間が変わると、履歴が壊れるため |
+| 振替権の状態は保存しない | 「未使用・予約済み・使用済み・期限切れ」は、予約と期限から判定する（下の表） | 状態を保存すると、日付が変わるたびに書き換える処理が必要になり、データの食い違いも起きうるため |
+| ルールの値は振替権に写す | 振替の期限は、振替権を作った時点のルールで計算し、`expires_on` に保存する | ルールを変更しても、すでにある振替権には影響させない（[12-2](#12-2-振替ルールの仕様)） |
+| 生徒IDを一部のテーブルにも持つ | `makeup_credits` と `makeup_reservations` にも `student_id` を持たせる | 「同じ生徒が同じ枠を二重に予約しない」をDBの一意制約で守るため。また、本リリースの休講では、欠席がないまま振替権が付くため |
+
+#### ER図
+
+型はRailsのマイグレーションで使う型です。「NULL可」と書いていない列は、すべて `NOT NULL` です。
+
+```mermaid
+erDiagram
+  users ||--o{ students : "保護者として持つ"
+  users ||--o{ absences : "欠席を連絡する"
+  students ||--o{ lesson_slots : "毎週の固定枠を持つ"
+  lesson_slots ||--o{ absences : "その日の欠席"
+  absences ||--o| makeup_credits : "振替権が付く"
+  students ||--o{ makeup_credits : "振替権を持つ"
+  makeup_credits ||--o{ makeup_reservations : "予約に使う"
+  makeup_slots ||--o{ makeup_reservations : "予約される"
+  students ||--o{ makeup_reservations : "振替を受ける"
+
+  users {
+    bigint id PK
+    string email UK "ログインID"
+    string encrypted_password "Devise"
+    string name "表示名"
+    integer role "0:保護者 1:先生"
+    string reset_password_token UK "NULL可・Devise"
+    datetime reset_password_sent_at "NULL可・Devise"
+    datetime remember_created_at "NULL可・Devise"
+    string invitation_token UK "NULL可・招待"
+    datetime invitation_created_at "NULL可・招待"
+    datetime invitation_sent_at "NULL可・招待"
+    datetime invitation_accepted_at "NULL可・招待"
+    integer invitation_limit "NULL可・招待"
+    string invited_by_type "NULL可・招待"
+    bigint invited_by_id "NULL可・招待した先生"
+    integer invitations_count "招待"
+    datetime created_at
+    datetime updated_at
+  }
+
+  students {
+    bigint id PK
+    bigint guardian_id FK "users.id"
+    string name "呼び名"
+    datetime created_at
+    datetime updated_at
+  }
+
+  lesson_slots {
+    bigint id PK
+    bigint student_id FK
+    integer wday "曜日 0:日〜6:土"
+    time start_time "開始時刻"
+    time end_time "終了時刻"
+    date starts_on "適用開始日"
+    date ends_on "NULL可・適用終了日"
+    datetime created_at
+    datetime updated_at
+  }
+
+  absences {
+    bigint id PK
+    bigint lesson_slot_id FK
+    date lesson_on "欠席するレッスンの日付"
+    bigint reported_by_id FK "users.id"
+    integer no_credit_reason "NULL可・0:締切後 1:月の上限"
+    datetime created_at "連絡した日時"
+    datetime updated_at
+  }
+
+  makeup_credits {
+    bigint id PK
+    bigint student_id FK
+    bigint absence_id FK, UK "欠席1回に1つ"
+    date expires_on "受講できる最終日"
+    datetime created_at
+    datetime updated_at
+  }
+
+  makeup_slots {
+    bigint id PK
+    datetime starts_at "開始日時"
+    datetime ends_at "終了日時"
+    integer capacity "定員・初期値1"
+    datetime created_at
+    datetime updated_at
+  }
+
+  makeup_reservations {
+    bigint id PK
+    bigint makeup_credit_id FK
+    bigint makeup_slot_id FK
+    bigint student_id FK
+    datetime canceled_at "NULL可・キャンセル日時"
+    datetime created_at
+    datetime updated_at
+  }
+
+  makeup_rules {
+    bigint id PK
+    integer monthly_limit "月の上限回数・初期値2"
+    integer valid_days "振替の期限の日数・初期値30"
+    integer absence_deadline_hours "欠席連絡の締切・開始の何時間前・初期値2"
+    integer reservation_deadline_days "振替予約の締切・何日前の23:59・初期値1"
+    datetime created_at
+    datetime updated_at
+  }
+```
+
+| 記号 | 意味 |
+|---|---|
+| `\|\|--o{` | 1対0以上（例：1人の保護者に、0人以上の生徒） |
+| `\|\|--o\|` | 1対0または1（例：1回の欠席に、振替権は0または1つ） |
+| PK・FK・UK | 主キー・外部キー・一意キー |
+
+#### テーブルの一覧
+
+| テーブル | 名前 | 役割 |
+|---|---|---|
+| users | ユーザー | 先生と保護者。`role` で区別する。Devise（ログイン・パスワード再設定）とdevise_invitable（招待）の列を含む |
+| students | 生徒 | 保護者に属する。ログインはしない |
+| lesson_slots | 固定枠 | 毎週のレッスンの曜日・時間と、その枠が有効な期間 |
+| absences | 欠席 | どの固定枠の、どの日を休むか。振替権が付かなかった場合は、その理由も持つ |
+| makeup_credits | 振替権 | 欠席1回につき最大1つ。受講できる最終日を持つ |
+| makeup_slots | 振替枠 | 先生が登録する、振替を受け付ける日時と定員 |
+| makeup_reservations | 振替予約 | どの振替権で、どの振替枠を予約したか。キャンセルしても行は残し、`canceled_at` を入れる |
+| makeup_rules | 振替ルール | 先生が設定する4項目。教室に1行だけ |
+
+#### 区分値（enum）
+
+| テーブル.列 | 値 |
+|---|---|
+| users.role | 0：保護者（初期値）、1：先生 |
+| absences.no_credit_reason | NULL：振替権あり、0：欠席連絡の締切後、1：月の上限を超えた |
+
+#### 制約とインデックス
+
+ルールのうち、同時に操作されても破れてはいけないものは、**DBの制約**で守ります。それ以外は、モデルのバリデーションで確認します。
+
+| テーブル | 制約・インデックス | 守ること |
+|---|---|---|
+| users | email の一意インデックス | 同じメールアドレスで2人登録しない |
+| users | `role = 1` の行に限った一意インデックス | 先生は教室に1人だけ |
+| users | reset_password_token・invitation_token の一意インデックス | Devise・devise_invitable の標準 |
+| lesson_slots | CHECK（wday が 0〜6、終了時刻 > 開始時刻、適用終了日 ≥ 適用開始日） | ありえない値を入れない |
+| absences | (lesson_slot_id, lesson_on) の一意インデックス | 同じレッスンの欠席を二重に登録しない |
+| makeup_credits | absence_id の一意インデックス | 欠席1回に振替権は1つまで |
+| makeup_slots | CHECK（終了日時 > 開始日時、定員 ≥ 1） | ありえない値を入れない |
+| makeup_slots | 排他制約（`tsrange(starts_at, ends_at)` が重ならない） | 先生は1人なので、振替枠どうしの時間が重ならない |
+| makeup_reservations | `canceled_at IS NULL` の行に限った、makeup_credit_id の一意インデックス | 1つの振替権で、有効な予約は1つまで |
+| makeup_reservations | `canceled_at IS NULL` の行に限った、(makeup_slot_id, student_id) の一意インデックス | 同じ生徒が同じ枠を二重に予約しない |
+| makeup_rules | CHECK（`id = 1`、各項目が0以上） | 設定は1行だけ |
+| すべての外部キー | 外部キー制約（削除は制限） | 履歴がある生徒・枠は削除できない |
+
+| モデルで確認すること | 方法 |
+|---|---|
+| 振替枠の定員を超えない | 予約するときに振替枠の行をロックし（`with_lock`）、有効な予約の数が定員未満かを確かめる |
+| 月の上限を超えない | 欠席を登録するときに生徒の行をロックし、その月に振替権が付いた欠席の数を数える |
+| 同じ生徒の時間が重ならない | 振替予約の時間が、その生徒の固定レッスン・ほかの振替予約と重ならないかを確かめる |
+| 固定枠どうし・固定枠と振替枠が重ならない | 先生は1人なので、時間が重なる枠は登録できない |
+| 欠席する日が正しい | その日が固定枠の曜日で、適用期間内で、レッスン開始前であること |
+
+#### 振替権の状態の判定
+
+| 状態 | 判定の条件 |
+|---|---|
+| 未使用 | 有効な予約（`canceled_at` が NULL）がなく、今日が `expires_on` 以前 |
+| 予約済み | 有効な予約があり、振替枠の開始日時がまだ来ていない |
+| 使用済み | 有効な予約があり、振替枠の開始日時を過ぎた（振替レッスンを欠席した場合も含む） |
+| 期限切れ | 有効な予約がなく、今日が `expires_on` を過ぎた |
+
+#### 型とタイムゾーン
+
+| Railsの型 | PostgreSQLの型 | 使う場面 |
+|---|---|---|
+| bigint | bigint | 主キー・外部キー（Railsの標準） |
+| string | character varying | 名前・メールアドレス |
+| integer | integer | 区分値・回数・日数 |
+| date | date | 欠席日・適用期間・振替の期限（日本の日付） |
+| time | time without time zone | 固定枠の開始・終了時刻（日本時間の時刻） |
+| datetime | timestamp(6) without time zone | 振替枠の日時・作成日時など（UTCで保存し、日本時間で表示） |
+
+- `config.time_zone = "Tokyo"` にして、締切や月の区切りを日本時間で判定します。
+- `time` 型の列は、Railsの標準ではタイムゾーンの変換対象になり、日付が「2000-01-01」の時刻として扱われるため、ずれが起きやすくなります。**`config.active_record.time_zone_aware_types = [:datetime]` にして、`time` 型の列は変換しない**ようにします。
+
+#### 機能の漏れの確認
+
+[8. 機能一覧](#8-機能一覧mvp本リリース)と[12-4. 画面一覧](#12-4-画面一覧)の内容を、どのテーブルで実現するかを確認しました。
+
+| 機能 | 使うテーブル・列 | 補足 |
+|---|---|---|
+| F-01 ログイン（ロール分け） | users（email・encrypted_password・role） | 生徒はusersに含めない |
+| F-02 生徒の登録・招待 | students、users（invitation_〜） | 登録済みのメールアドレスなら、既存の保護者に生徒を追加する |
+| F-03 固定枠の設定 | lesson_slots | 変更は「終了日を入れて新しく作る」 |
+| F-04 振替枠の登録 | makeup_slots | 予約状況は makeup_reservations を数える |
+| F-05 振替ルールの設定 | makeup_rules | 行がない間は初期値で動き、T-01 では手順③を未完了と表示する |
+| F-06 欠席・振替の一覧 | absences、makeup_reservations | 今月の利用回数は、その月に振替権が付いた欠席の数 |
+| F-07 レッスン予定の確認 | lesson_slots、absences、makeup_reservations | 今後の各回は lesson_slots から計算する |
+| F-08 欠席連絡 | absences | 連絡した日時は created_at |
+| F-09 振替枠の表示・予約 | makeup_slots、makeup_credits、makeup_reservations | 期限・締切・定員・重複を満たす枠だけを表示する |
+| F-10 振替予約のキャンセル | makeup_reservations（canceled_at） | 行は消さないので、履歴が残る |
+| F-11 振替ルールの確認 | 上の「制約とインデックス」 | DBの制約とモデルの確認の両方で守る |
+| F-12 メール通知 | users（email・role） | 送信は Active Job で行う。キューは Solid Queue（別のDB） |
+| P-03 振替権が付かない理由の表示 | absences.no_credit_reason | 確認の過程で見つかった漏れ。列を追加して対応した |
+| P-01 今月の振替の残り回数 | makeup_rules.monthly_limit − その月に振替権が付いた欠席の数 | 保存せずに計算する |
+
+Railsが自動で作る Solid Queue・Solid Cache・Solid Cable のテーブルは、アプリのデータとは別のDBに置くため、このER図には含めていません。
+
+#### 本リリースで追加する予定
+
+| 機能 | 追加するもの |
+|---|---|
+| 先生の都合による休講 | 休講を記録するテーブル（固定枠と日付）。makeup_credits の absence_id を NULL可にし、休講への参照を追加する（月の上限には数えない） |
+| 生徒の退会 | students に退会日を追加し、退会後の予定と予約を表示しない |
 
 ---
 
