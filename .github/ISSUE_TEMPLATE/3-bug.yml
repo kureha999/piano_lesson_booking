@@ -1,0 +1,37 @@
+name: 不具合
+description: 期待どおりに動かないものを報告する
+title: "（不具合の内容）"
+labels: ["bug"]
+body:
+  - type: textarea
+    id: steps
+    attributes:
+      label: 再現手順
+      description: 誰が（先生・保護者）、どの画面で、何をしたかを順に書きます。
+      value: |
+        1.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期待する動き
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: 実際の動き
+      description: エラーメッセージやスクリーンショットがあれば貼ります。
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: 環境
+      placeholder: "開発環境 / 本番環境、iPhone の Safari など"
+  - type: input
+    id: refs
+    attributes:
+      label: 関連
+      placeholder: "画面 P-03、機能 F-08"

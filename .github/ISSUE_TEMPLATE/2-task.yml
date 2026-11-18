@@ -1,0 +1,58 @@
+name: 開発基盤・品質
+description: テスト・CI・Lint・リファクタリング・インフラ・ドキュメントなど、機能以外の作業
+title: "（作業の内容）"
+body:
+  - type: dropdown
+    id: type
+    attributes:
+      label: 種類
+      description: 選んだ種類と同じラベルを、作成後に付けてください。
+      options:
+        - test（テストの基盤・テストの追加）
+        - quality（性能・設計の改善）
+        - ci（CI/CD・Linter・Formatter）
+        - infra（AWS・Terraform・本番環境）
+        - docs（README・設計資料・デモ）
+        - chore（設定・開発環境・データ準備）
+    validations:
+      required: true
+  - type: textarea
+    id: summary
+    attributes:
+      label: 概要
+      description: 何をするか、なぜ必要かを書きます。
+    validations:
+      required: true
+  - type: textarea
+    id: tasks
+    attributes:
+      label: やること
+      value: |
+        - [ ]
+    validations:
+      required: true
+  - type: textarea
+    id: research
+    attributes:
+      label: 調べること
+      description: 新しいツールのバージョンや対応状況など、着手前に確認することを書きます。
+  - type: textarea
+    id: done
+    attributes:
+      label: 完了条件
+      value: |
+        - [ ]
+    validations:
+      required: true
+  - type: dropdown
+    id: points
+    attributes:
+      label: ストーリーポイント
+      description: 1 SP ＝ 約2時間。8以上になる場合はissueを分けます。作成後、Projects の「Story Points」にも同じ値を入れてください。
+      options:
+        - "1"
+        - "2"
+        - "3"
+        - "5"
+    validations:
+      required: true
