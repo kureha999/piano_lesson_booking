@@ -881,6 +881,19 @@ bin/rails server
 
 http://localhost:3000 で確認できます。
 
+**テストの実行**
+
+```bash
+# すべてのテストを実行する
+bin/rspec
+
+# ファイルや行を指定して実行する
+bin/rspec spec/models/user_spec.rb
+bin/rspec spec/models/user_spec.rb:12
+```
+
+テストの共通処理（ヘルパーや設定）は `spec/support/` に置きます。`spec/rails_helper.rb` が自動で読み込みます。
+
 ---
 
 ## 14. 開発の進め方
