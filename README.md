@@ -908,6 +908,27 @@ Line coverage: 1 / 10 (10.00%)    # 通った行 / 対象の行（割合）
 - 設定は `spec/spec_helper.rb` の先頭にあります。`coverage/` は Git に含めません（`.gitignore`）。
 - 割合の目標は決めていません。数値を追うことより、ルールの分岐（振替の締切・上限など）にテストがあるかを見るために使います。
 
+**Lint（コードの書き方のチェック）**
+
+```bash
+bin/rubocop          # Ruby と spec（rubocop-rails-omakase + rubocop-rspec）
+bin/rubocop -a       # 自動で直せるものを直す
+npm run herb:lint    # ERB（Herb Linter）
+npm run herb:lint -- --fix   # 自動で直せるものを直す
+```
+
+- ERB の Lint には Node.js が必要です（`mise` で入れた Node でかまいません）。`bin/setup` が `npm install` まで行います。
+- RuboCop のルールを変えた理由は `.rubocop.yml`、Herb の設定の理由は `.herb.yml` にコメントで書いています。
+- Herb の Formatter は、公式が試験的な段階としているため使いません（`.herb.yml` で `formatter.enabled: false`）。ERB の整形は手で行い、Lint の指摘に従います。
+- どちらも CI（GitHub Actions）と `bin/ci` で実行されます。
+
+**エディタの設定（VS Code）**
+
+リポジトリを開くと、おすすめの拡張機能が表示されます（`.vscode/extensions.json`）。
+
+- [Ruby LSP](https://marketplace.visualstudio.com/items?itemName=Shopify.ruby-lsp)：保存時に RuboCop の設定（`.rubocop.yml`）で Ruby を自動整形します（`.vscode/settings.json`）。
+- [Herb LSP](https://marketplace.visualstudio.com/items?itemName=marcoroth.herb-lsp)：ERB の Lint の指摘をエディタ上に表示します（`.herb.yml` の設定を使います）。
+
 ---
 
 ## 14. 開発の進め方

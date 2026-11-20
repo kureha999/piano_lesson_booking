@@ -2,6 +2,9 @@
 
 # Ignore git directory.
 /.git/
+
+# Ignore npm packages (only used for development tools).
+/node_modules/
 /.gitignore
 
 # Ignore bundler config.

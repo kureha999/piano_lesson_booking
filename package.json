@@ -1,0 +1,12 @@
+{
+  "name": "piano_lesson_booking",
+  "private": true,
+  "description": "ふりかえ帳の開発用ツール（ERB の Lint）。アプリの JavaScript は importmap で管理するため、ここには入れない",
+  "scripts": {
+    "herb:lint": "herb-lint"
+  },
+  "devDependencies": {
+    "@herb-tools/formatter": "0.11.2",
+    "@herb-tools/linter": "0.11.2"
+  }
+}

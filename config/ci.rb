@@ -5,6 +5,8 @@ CI.run do
 
   step "Style: Ruby", "bin/rubocop"
 
+  step "Style: ERB", "npm run herb:lint"
+
   step "Tests: RSpec", "bin/rspec"
 
   step "Security: Gem audit", "bin/bundler-audit"
