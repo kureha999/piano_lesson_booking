@@ -894,6 +894,20 @@ bin/rspec spec/models/user_spec.rb:12
 
 テストの共通処理（ヘルパーや設定）は `spec/support/` に置きます。`spec/rails_helper.rb` が自動で読み込みます。
 
+**カバレッジの見方**
+
+`bin/rspec` を実行すると、SimpleCov がカバレッジ（テストが通った行の割合）を測定します。
+
+```text
+Coverage report generated for RSpec to coverage/index.html
+Line coverage: 1 / 10 (10.00%)    # 通った行 / 対象の行（割合）
+```
+
+- 詳しいレポートは `coverage/index.html` をブラウザで開いて見ます（`open coverage/index.html`）。ファイルごとの割合と、テストが通っていない行（赤）を確認できます。
+- 対象は `app/` と `lib/` です。`spec/`・`config/`・`db/` は対象外です（SimpleCov の `rails` プロファイル）。
+- 設定は `spec/spec_helper.rb` の先頭にあります。`coverage/` は Git に含めません（`.gitignore`）。
+- 割合の目標は決めていません。数値を追うことより、ルールの分岐（振替の締切・上限など）にテストがあるかを見るために使います。
+
 ---
 
 ## 14. 開発の進め方
