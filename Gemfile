@@ -76,6 +76,9 @@ group :test do
 end
 
 group :development do
+  # 開発環境で送ったメールをブラウザで確認する [https://github.com/fgrehm/letter_opener_web]
+  gem "letter_opener_web", "~> 3.0"
+
   # Use console on exceptions pages [https://github.com/rails/web-console]
   gem "web-console"
 end
