@@ -10,6 +10,9 @@
 # Ignore all environment files.
 /.env*
 
+# .env.example は共有するので除外しない
+!/.env.example
+
 # Ignore all logfiles and tempfiles.
 /log/*
 /tmp/*

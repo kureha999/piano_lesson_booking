@@ -872,14 +872,28 @@ cd piano_lesson_booking
 mise settings add idiomatic_version_file_enable_tools ruby
 mise install
 
-# 4. gem のインストールと DB の準備
+# 4. 環境変数のファイルを作る（空でも起動できます。変えたい値だけ書きます）
+cp .env.example .env
+
+# 5. gem のインストールと DB の準備
 bin/setup
 
-# 5. 起動
+# 6. 起動
 bin/rails server
 ```
 
 http://localhost:3000 で確認できます。
+
+**環境変数と credentials の使い分け**
+
+| 種類 | 置き場所 | 例 |
+|---|---|---|
+| 環境ごとに変わる値 | 環境変数（開発・テストは `.env`、本番はデプロイ先で設定） | ポート、スレッド数、ログの詳細さ |
+| 本番の秘密情報 | Rails の credentials（`config/credentials.yml.enc`） | API キー、メールの認証情報 |
+
+- 変数の一覧と説明は `.env.example` にあります。実際の値は書かず、`.env` は Git に入れません。
+- `.env` は dotenv-rails が開発・テスト環境で自動で読み込みます。すでに設定されている環境変数（CI など）は上書きしません。本番では使いません。
+- 変数を追加したら、同じ作業の中で `.env.example` にも名前・説明・例を書きます。
 
 **テストの実行**
 
