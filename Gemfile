@@ -52,15 +52,20 @@ group :development, :test do
 
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   gem "rubocop-rails-omakase", require: false
+
+  # Testing framework [https://github.com/rspec/rspec-rails]
+  gem "rspec-rails", "~> 8.1"
+
+  # Test data factories [https://github.com/thoughtbot/factory_bot_rails]
+  gem "factory_bot_rails", "~> 6.5"
+end
+
+group :test do
+  # Code coverage [https://github.com/simplecov-ruby/simplecov]
+  gem "simplecov", "~> 1.3", require: false
 end
 
 group :development do
   # Use console on exceptions pages [https://github.com/rails/web-console]
   gem "web-console"
 end
-
-gem "rspec-rails", "~> 8.1", groups: [ :development, :test ]
-
-gem "factory_bot_rails", "~> 6.5", groups: [ :development, :test ]
-
-gem "simplecov", "~> 1.3", group: :test, require: false
