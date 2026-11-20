@@ -60,13 +60,13 @@ case "$ACTION" in
     OPTION_ID=$(gh project field-list "$PROJECT" --owner "$OWNER" --format json \
       --jq ".fields[] | select(.name == \"Status\") | .options[] | select(.name == \"$STATUS\") | .id")
     if [ -z "$OPTION_ID" ]; then
-      echo "✗ Status「$STATUS」がありません（Todo / In Progress / Done のどれかを指定してください）" >&2
+      echo "✗ Status「${STATUS}」がありません（Todo / In Progress / Done のどれかを指定してください）" >&2
       exit 1
     fi
     ITEM_ID=$(require_item)
     gh project item-edit --id "$ITEM_ID" --project-id "$(project_id)" \
       --field-id "$(field_id Status)" --single-select-option-id "$OPTION_ID" > /dev/null
-    echo "✓ #$ISSUE の Status を「$STATUS」にしました"
+    echo "✓ #$ISSUE の Status を「${STATUS}」にしました"
     ;;
   points)
     [ $# -eq 3 ] || usage
