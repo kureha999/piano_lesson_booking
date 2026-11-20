@@ -1,0 +1,85 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(bin/rspec)",
+      "Bash(bin/rspec *)",
+      "Bash(bin/rubocop)",
+      "Bash(bin/rubocop *)",
+      "Bash(bin/ci)",
+      "Bash(bin/brakeman *)",
+      "Bash(bin/bundler-audit *)",
+      "Bash(bin/importmap audit)",
+      "Bash(bin/rails generate *)",
+      "Bash(bin/rails g *)",
+      "Bash(bin/rails db:create)",
+      "Bash(bin/rails db:prepare)",
+      "Bash(bin/rails db:migrate)",
+      "Bash(bin/rails db:rollback)",
+      "Bash(bin/rails routes *)",
+      "Bash(bundle install)",
+      "Bash(bundle exec *)",
+      "Bash(bundle binstubs *)",
+      "Bash(git status)",
+      "Bash(git status *)",
+      "Bash(git diff)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(git --no-pager *)",
+      "Bash(git branch *)",
+      "Bash(git switch *)",
+      "Bash(git fetch *)",
+      "Bash(git pull)",
+      "Bash(git pull *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push -u origin feature/*)",
+      "Bash(git push origin feature/*)",
+      "Bash(gh issue view *)",
+      "Bash(gh issue list *)",
+      "Bash(gh issue comment *)",
+      "Bash(gh pr create *)",
+      "Bash(gh pr view *)",
+      "Bash(gh pr list *)",
+      "Bash(gh pr checks *)",
+      "Bash(script/project.sh *)",
+      "Bash(sleep *)",
+      "WebSearch"
+    ],
+    "ask": [
+      "Bash(gh pr merge *)",
+      "Bash(gh issue create *)",
+      "Bash(bundle add *)",
+      "Bash(aws *)",
+      "Bash(terraform apply *)",
+      "Bash(terraform destroy *)",
+      "Bash(kamal *)"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./config/master.key)",
+      "Read(./config/credentials/*.key)",
+      "Bash(git push --force *)",
+      "Bash(git push -f *)",
+      "Bash(git push origin main)",
+      "Bash(git push * main)",
+      "Bash(git reset --hard *)",
+      "Bash(rm -rf *)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "if": "Bash(git commit *)",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/pre-commit-check.sh",
+            "args": [],
+            "timeout": 600
+          }
+        ]
+      }
+    ]
+  }
+}
