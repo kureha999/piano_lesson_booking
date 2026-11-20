@@ -305,7 +305,7 @@ MVPでは、「保護者が欠席を伝えてから振替を確定するまで�
 | フロントエンド | Hotwire（Turbo・Stimulus）、importmap |
 | DB | PostgreSQL 17 |
 | 認証 | Devise、devise_invitable（招待メール） |
-| テスト・静的解析 | RSpec、factory_bot_rails、RuboCop（rubocop-rails-omakase）、Brakeman、bundler-audit |
+| テスト・静的解析 | RSpec、factory_bot_rails、SimpleCov、RuboCop（rubocop-rails-omakase）、Brakeman、bundler-audit |
 | CI/CD | GitHub Actions |
 | インフラ | AWS（EC2・RDS・S3・CloudFront）、Terraform でコード化 |
 | メール | 開発環境：letter_opener_web ／ 本番：Amazon SES |
