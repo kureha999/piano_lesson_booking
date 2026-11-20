@@ -109,3 +109,22 @@ jobs:
       - name: Lint code for consistent style
         run: bin/rubocop -f github
 
+  lint_erb:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: lts/*
+          cache: npm
+
+      - name: Install npm packages
+        run: npm ci
+
+      - name: Lint ERB templates
+        run: npm run herb:lint -- --github
+

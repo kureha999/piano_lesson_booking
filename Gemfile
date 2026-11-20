@@ -53,6 +53,10 @@ group :development, :test do
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   gem "rubocop-rails-omakase", require: false
 
+  # RSpec のコードのスタイルチェック [https://github.com/rubocop/rubocop-rspec]
+  gem "rubocop-rspec", "~> 3.10", require: false
+  gem "rubocop-rspec_rails", "~> 2.33", require: false
+
   # Testing framework [https://github.com/rspec/rspec-rails]
   gem "rspec-rails", "~> 8.1"
 

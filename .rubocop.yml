@@ -1,8 +1,47 @@
 # Omakase Ruby styling for Rails
+# 方針：Rails 標準の書き方（rubocop-rails-omakase）を土台にし、
+# spec だけ rubocop-rspec で追加チェックする。アプリ側のルールは変えない。
 inherit_gem: { rubocop-rails-omakase: rubocop.yml }
 
-# Overwrite or add rules to create your own house style
-#
-# # Use `[a, [b, c]]` not `[ a, [ b, c ] ]`
-# Layout/SpaceInsideArrayLiteralBrackets:
-#   Enabled: false
+plugins:
+  - rubocop-rspec
+  - rubocop-rspec_rails
+
+# 新しく追加されたルールは、確認してから有効にする（勝手に有効にならないようにする）
+AllCops:
+  NewCops: disable
+  Exclude:
+    - "node_modules/**/*"
+
+# --- rubocop-rspec のルール（spec だけに適用される） ---
+
+# 1つの example に複数の expect を書いてよい。
+# 理由：振替の判定などで、1回の準備に対して結果を複数確かめたいことが多く、
+# 1 expect ずつに分けるとテストが遅く冗長になるため。
+RSpec/MultipleExpectations:
+  Enabled: false
+
+# example の行数の上限。既定の 5 行は短すぎるため 15 行にする。
+# 理由：準備（let）を共通化しても、振替ルールの検証は数行必要になるため。
+RSpec/ExampleLength:
+  Max: 15
+
+# describe / context のネストの上限。既定の 3 は浅いため 4 にする。
+# 理由：「対象 > メソッド > 条件 > 例外条件」と段階を分けて読みやすく書くため。
+RSpec/NestedGroups:
+  Max: 4
+
+# 1つの describe に let を置ける数の上限。既定の 5 だと、
+# 先生・生徒・レッスン・振替権などを準備する spec で足りなくなるため 8 にする。
+RSpec/MultipleMemoizedHelpers:
+  Max: 8
+
+# context の説明は日本語で書くので、「when / with / without」の接頭辞を強制しない。
+# 理由：既定のルールは英語の接頭辞（when など）を前提にしているため。
+RSpec/ContextWording:
+  Enabled: false
+
+# spec のファイル名とクラス名を対応させる。ただし request spec など
+# クラスを持たない spec は対象外にする（rubocop-rspec の既定の動作）。
+RSpec/SpecFilePathFormat:
+  Enabled: true
