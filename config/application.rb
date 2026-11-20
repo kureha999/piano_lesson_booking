@@ -33,7 +33,12 @@ module PianoLessonBooking
     # These settings can be overridden in specific environments using the files
     # in config/environments, which are processed later.
     #
-    # config.time_zone = "Central Time (US & Canada)"
+    # 締切や月の区切りを日本時間で判定する
+    config.time_zone = "Tokyo"
+    # time 型の列（固定枠の開始・終了時刻）はタイムゾーンを変換しない
+    config.active_record.time_zone_aware_types = [ :datetime ]
+    # 画面の文言・エラーメッセージは日本語
+    config.i18n.default_locale = :ja
     # config.eager_load_paths << Rails.root.join("extras")
 
     # Don't generate system test files.
