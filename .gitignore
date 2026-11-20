@@ -33,3 +33,7 @@
 # Ignore key files for decrypting credentials and more.
 /config/*.key
 
+
+# Claude Code の個人用設定（共有しない）
+/.claude/settings.local.json
+/CLAUDE.local.md

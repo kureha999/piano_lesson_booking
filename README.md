@@ -961,3 +961,29 @@ bin/rspec spec/models/user_spec.rb:12
 | M5 通知・ダッシュボード | メール通知と先生の一覧、デモデータ（F-06・F-12） |
 | M6 品質改善・MVP完成 | テストの拡充、N+1・責務の見直し、動作確認とデモ |
 | M7 AWS公開 | Terraform で構築して公開し、記録後に停止する |
+
+### 14-6. Claude Code での開発
+
+この開発では、Claude Code に issue を1件ずつ任せています。設定は次のファイルにまとめています。
+
+| ファイル | 内容 |
+|---|---|
+| `CLAUDE.md` | Claude Code が毎回読む、プロジェクトの説明と必ず守るルール |
+| `.claude/skills/issue/SKILL.md` | issue を1件進める手順（`/issue <番号>` で呼び出す） |
+| `.claude/settings.json` | 確認なしで実行できるコマンド・確認が必要なコマンド・禁止するコマンド、フックの登録 |
+| `.claude/hooks/pre-commit-check.sh` | コミットの直前に RSpec と RuboCop を実行し、失敗したらコミットを止めるフック |
+| `script/project.sh` | GitHub Projects の Status・Story Points をコマンドで変更する |
+
+主なルールは次のとおりです。
+
+- 1回の指示で進める issue は1つだけ。完了したら報告して止まり、次の指示を待つ
+- コミットの前に、必ずテスト（RSpec）・RuboCop・`bin/ci` を実行する
+- 外部ツール・サービスは無料のものだけを使い、料金が発生する操作はしない
+- PR のマージ、gem の追加、AWS の操作は、実行の前に人が承認する
+
+```bash
+cd ~/Documents/04_Projects/piano_lesson_booking
+claude
+# 起動したら、次のように入力する
+/issue 13
+```
