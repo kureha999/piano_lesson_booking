@@ -12,3 +12,4 @@ ja:
         password_confirmation: パスワード（確認）
         role: 役割
         remember_me: ログインしたままにする
+        reset_password_token: 再設定のリンク
