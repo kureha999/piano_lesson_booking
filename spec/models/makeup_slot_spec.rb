@@ -86,6 +86,28 @@ RSpec.describe MakeupSlot do
     end
   end
 
+  describe "予約数と定員" do
+    it "予約がある枠は、定員を予約数より少なくできない" do
+      slot = create(:makeup_slot, capacity: 3)
+      allow(slot).to receive(:reserved_count).and_return(2)
+
+      slot.capacity = 1
+      expect(slot).not_to be_valid
+      expect(slot.errors[:capacity]).to include "は、すでにある予約の数（2件）以上にしてください"
+
+      slot.capacity = 2
+      expect(slot).to be_valid
+    end
+
+    it "予約がない枠は、定員を1まで減らせる" do
+      slot = create(:makeup_slot, capacity: 3)
+
+      expect(slot.reserved_count).to eq 0
+      slot.capacity = 1
+      expect(slot).to be_valid
+    end
+  end
+
   describe "振替枠どうしの重なり" do
     let!(:existing) { create(:makeup_slot, starts_at: at(1, 10), ends_at: at(1, 11)) }
 
@@ -93,7 +115,7 @@ RSpec.describe MakeupSlot do
       slot = build(:makeup_slot, starts_at: at(1, 10, 30), ends_at: at(1, 11, 30))
 
       expect(slot).not_to be_valid
-      expect(slot.errors[:base]).to include "同じ時間に、ほかの振替枠があります"
+      expect(slot.errors[:base]).to include "同じ時間に、ほかの振替枠があります（6月1日 10:00〜11:00）"
     end
 
     it "接しているだけなら、登録できる" do
@@ -121,7 +143,7 @@ RSpec.describe MakeupSlot do
       slot = build(:makeup_slot, starts_at: at(10, 16, 15), ends_at: at(10, 16, 45))
 
       expect(slot).not_to be_valid
-      expect(slot.errors[:base]).to include "固定枠（毎週のレッスン）の時間と重なっています"
+      expect(slot.errors[:base].sole).to match(/固定枠（毎週のレッスン）の時間と重なっています（.+さん 6月10日 16:00〜16:30）/)
     end
 
     it "長い振替枠が、固定枠のレッスンをまたぐときも登録できない" do

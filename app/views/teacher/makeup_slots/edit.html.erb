@@ -1,0 +1,6 @@
+<%# T-07 振替枠の編集 %>
+<% content_for :title, "振替枠の編集 | ふりかえ帳" %>
+
+<h1 class="h4 mb-3">振替枠の編集</h1>
+
+<%= render "form", makeup_slot: @makeup_slot, url: teacher_makeup_slot_path(@makeup_slot), method: :patch %>
