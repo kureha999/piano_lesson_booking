@@ -1,0 +1,47 @@
+<%# T-05 固定枠の登録・変更のフォーム。form は LessonSlotForm、url と method は呼び出し側で渡す。students は登録のときだけ渡す %>
+<%= form_with(model: form, url: url, method: method) do |f| %>
+  <%= field_error(form, :base) %>
+
+  <div class="mb-3">
+    <%= f.label :student_id, class: "form-label" %>
+    <% if form.persisted? %>
+      <p class="form-control-plaintext"><%= form.student.name %></p>
+    <% else %>
+      <%= f.collection_select :student_id, students, :id, :name, { include_blank: "選んでください" }, class: "form-select" %>
+      <%= field_error(form, :student_id) %>
+    <% end %>
+  </div>
+
+  <div class="mb-3">
+    <%= f.label :wday, class: "form-label" %>
+    <%= f.select :wday, I18n.t("date.day_names").each_with_index.map { |name, wday| [ name, wday ] }, { include_blank: "選んでください" }, class: "form-select" %>
+    <%= field_error(form, :wday) %>
+  </div>
+
+  <div class="row">
+    <div class="col-6 mb-3">
+      <%= f.label :start_time, class: "form-label" %>
+      <%= f.time_field :start_time, class: "form-control" %>
+      <%= field_error(form, :start_time) %>
+    </div>
+    <div class="col-6 mb-3">
+      <%= f.label :end_time, class: "form-label" %>
+      <%= f.time_field :end_time, class: "form-control" %>
+      <%= field_error(form, :end_time) %>
+    </div>
+  </div>
+
+  <div class="mb-3">
+    <%= f.label :starts_on, class: "form-label" %>
+    <%= f.date_field :starts_on, class: "form-control" %>
+    <% if form.persisted? %>
+      <div class="form-text">曜日や時間を変えると、今の枠はこの日の前日で終了し、この日から新しい枠になります。過去の欠席は、元の曜日・時間のまま残ります。</div>
+    <% end %>
+    <%= field_error(form, :starts_on) %>
+  </div>
+
+  <div class="d-grid gap-2 d-md-flex">
+    <%= f.submit "保存する", class: "btn btn-primary" %>
+    <%= link_to "一覧に戻る", teacher_lesson_slots_path, class: "btn btn-outline-secondary" %>
+  </div>
+<% end %>

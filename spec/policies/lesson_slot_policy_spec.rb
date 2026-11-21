@@ -1,16 +1,19 @@
 require "rails_helper"
 
 RSpec.describe LessonSlotPolicy do
-  it "一覧は、先生だけに許可する" do
-    expect(described_class.new(build(:teacher), LessonSlot).index?).to be true
-    expect(described_class.new(build(:guardian), LessonSlot).index?).to be false
-    expect(described_class.new(nil, LessonSlot).index?).to be false
+  # 一覧・登録（new?）・変更（edit?）は先生だけ。保護者とログインしていない人は、どれも許可しない
+  %i[index? create? new? update? edit?].each do |action|
+    it "#{action} は、先生だけに許可する" do
+      expect(described_class.new(build(:teacher), LessonSlot).public_send(action)).to be true
+      expect(described_class.new(build(:guardian), LessonSlot).public_send(action)).to be false
+      expect(described_class.new(nil, LessonSlot).public_send(action)).to be false
+    end
   end
 
-  it "登録・編集・削除は、まだ許可しない（画面がない）" do
+  it "詳細表示と削除は、先生にも許可しない（画面がない）" do
     policy = described_class.new(build(:teacher), LessonSlot)
 
-    expect([ policy.create?, policy.update?, policy.destroy?, policy.show? ]).to all(be false)
+    expect([ policy.show?, policy.destroy? ]).to all(be false)
   end
 
   describe "Scope" do

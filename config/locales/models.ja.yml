@@ -8,14 +8,29 @@ ja:
         name: 生徒の呼び名
         guardian_name: 保護者の名前
         guardian_email: 保護者のメールアドレス
+  # 固定枠の登録・変更フォーム（LessonSlotForm）の項目名
+      lesson_slot:
+        student_id: 生徒
+        wday: 曜日
+        start_time: 開始時刻
+        end_time: 終了時刻
+        starts_on: 適用開始日
   activerecord:
     models:
       user: ユーザー
       student: 生徒
+      lesson_slot: 固定枠
     attributes:
       student:
         name: 名前
         guardian: 保護者
+      lesson_slot:
+        student: 生徒
+        wday: 曜日
+        start_time: 開始時刻
+        end_time: 終了時刻
+        starts_on: 適用開始日
+        ends_on: 適用終了日
       user:
         email: メールアドレス
         name: 名前

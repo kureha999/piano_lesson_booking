@@ -1,7 +1,10 @@
-<%# T-04 固定枠の一覧。登録・編集（T-05）へのリンクは、T-05 を作る issue で追加する %>
+<%# T-04 固定枠の一覧 %>
 <% content_for :title, "固定枠 | ふりかえ帳" %>
 
-<h1 class="h4 mb-3">固定枠</h1>
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h4 mb-0">固定枠</h1>
+  <%= link_to "固定枠を追加する", new_teacher_lesson_slot_path, class: "btn btn-primary" %>
+</div>
 <p class="text-body-secondary">今日（<%= japanese_date(Date.current) %>）に有効な、毎週のレッスンです。</p>
 
 <% if @lesson_slots.empty? %>
@@ -15,6 +18,7 @@
           <th scope="col">時間</th>
           <th scope="col">生徒</th>
           <th scope="col">適用期間</th>
+          <th scope="col"><span class="visually-hidden">操作</span></th>
         </tr>
       </thead>
       <tbody>
@@ -27,6 +31,7 @@
               <%= japanese_date(slot.starts_on) %>から
               <%= slot.ends_on ? "#{japanese_date(slot.ends_on)}まで" : "（終了日なし）" %>
             </td>
+            <td class="text-end"><%= link_to "変更", edit_teacher_lesson_slot_path(slot), aria: { label: "#{slot.student.name}さんの#{slot.wday_name}#{slot.time_range}の枠を変更" } %></td>
           </tr>
         <% end %>
       </tbody>

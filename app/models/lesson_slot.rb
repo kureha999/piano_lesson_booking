@@ -4,7 +4,7 @@
 class LessonSlot < ApplicationRecord
   belongs_to :student
 
-  validates :wday, presence: true, inclusion: { in: 0..6, message: "は日曜日〜土曜日のいずれかを選んでください" }
+  validates :wday, presence: true, inclusion: { in: 0..6, allow_nil: true, message: "は日曜日〜土曜日のいずれかを選んでください" }
   validates :start_time, :end_time, :starts_on, presence: true
   validate :end_time_after_start_time
   validate :ends_on_not_before_starts_on
