@@ -87,4 +87,4 @@ gem "devise", "~> 5.0"
 
 gem "pundit", "~> 2.5"
 
-gem "devise_invitable", "~> 2.0.14"
+gem "devise_invitable", "~> 3.1.0"
