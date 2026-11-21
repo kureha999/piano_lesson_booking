@@ -106,6 +106,9 @@ GEM
       railties (>= 7.0)
       responders
       warden (~> 1.2.3)
+    devise_invitable (2.0.14)
+      actionmailer (>= 5.0)
+      devise (>= 4.6)
     diff-lcs (1.6.2)
     dotenv (3.2.0)
     dotenv-rails (3.2.0)
@@ -447,6 +450,7 @@ DEPENDENCIES
   bundler-audit
   debug
   devise (~> 5.0)
+  devise_invitable (~> 2.0.14)
   dotenv-rails (~> 3.2)
   factory_bot_rails (~> 6.5)
   image_processing (~> 1.2)
