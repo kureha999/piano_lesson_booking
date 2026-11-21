@@ -20,6 +20,7 @@ ja:
       user: ユーザー
       student: 生徒
       lesson_slot: 固定枠
+      makeup_slot: 振替枠
     attributes:
       student:
         name: 名前
@@ -31,6 +32,10 @@ ja:
         end_time: 終了時刻
         starts_on: 適用開始日
         ends_on: 適用終了日
+      makeup_slot:
+        starts_at: 開始日時
+        ends_at: 終了日時
+        capacity: 定員
       user:
         email: メールアドレス
         name: 名前

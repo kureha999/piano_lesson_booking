@@ -1,7 +1,15 @@
-# 振替枠。一覧は先生だけが見られる（保護者向けの「予約できる枠」は、期限・締切・定員を見て絞る別の画面で扱う）。
+# 振替枠。一覧・登録・編集は先生だけができる（保護者向けの「予約できる枠」は、期限・締切・定員を見て絞る別の画面で扱う）。
 class MakeupSlotPolicy < ApplicationPolicy
   def index?
-    user&.teacher? || false
+    teacher?
+  end
+
+  def create?
+    teacher?
+  end
+
+  def update?
+    teacher?
   end
 
   class Scope < ApplicationPolicy::Scope
@@ -9,5 +17,11 @@ class MakeupSlotPolicy < ApplicationPolicy
     def resolve
       user&.teacher? ? scope.all : scope.none
     end
+  end
+
+  private
+
+  def teacher?
+    user&.teacher? || false
   end
 end

@@ -1,0 +1,33 @@
+<%# T-07 振替枠の登録・編集のフォーム。url と method は呼び出し側で渡す %>
+<%= form_with(model: makeup_slot, url: url, method: method) do |f| %>
+  <%# 重なりのエラー（どの枠と重なるか）は、フォームの上に表示する %>
+  <% if makeup_slot.errors[:base].any? %>
+    <div class="alert alert-danger" role="alert">
+      <%= safe_join(makeup_slot.errors[:base], tag.br) %>
+    </div>
+  <% end %>
+
+  <div class="mb-3">
+    <%= f.label :starts_at, class: "form-label" %>
+    <%= f.datetime_local_field :starts_at, value: makeup_slot.starts_at&.strftime("%Y-%m-%dT%H:%M"), class: "form-control" %>
+    <%= field_error(makeup_slot, :starts_at) %>
+  </div>
+
+  <div class="mb-3">
+    <%= f.label :ends_at, class: "form-label" %>
+    <%= f.datetime_local_field :ends_at, value: makeup_slot.ends_at&.strftime("%Y-%m-%dT%H:%M"), class: "form-control" %>
+    <%= field_error(makeup_slot, :ends_at) %>
+  </div>
+
+  <div class="mb-3">
+    <%= f.label :capacity, class: "form-label" %>
+    <%= f.number_field :capacity, min: 1, step: 1, class: "form-control" %>
+    <div class="form-text">同じ時間に受け付ける人数です。初期値は1人です。</div>
+    <%= field_error(makeup_slot, :capacity) %>
+  </div>
+
+  <div class="d-grid gap-2 d-md-flex">
+    <%= f.submit "保存する", class: "btn btn-primary" %>
+    <%= link_to "一覧に戻る", teacher_makeup_slots_path, class: "btn btn-outline-secondary" %>
+  </div>
+<% end %>
