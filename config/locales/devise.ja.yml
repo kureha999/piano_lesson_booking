@@ -10,7 +10,24 @@ ja:
       timeout: "しばらく操作がなかったため、ログアウトしました。もう一度ログインしてください。"
       unauthenticated: "ログインしてください。"
       unconfirmed: "メールアドレスの確認が必要です。"
+    mailer:
+      reset_password_instructions:
+        subject: "【ふりかえ帳】パスワードの再設定"
+    passwords:
+      no_token: "このページは、パスワード再設定メールのリンクから開いてください。"
+      send_instructions: "パスワードの再設定について、メールをお送りしました。"
+      send_paranoid_instructions: "登録されているメールアドレスの場合は、パスワードを再設定するためのメールをお送りしました。メールが届かないときは、迷惑メールフォルダーもご確認ください。"
+      updated: "パスワードを変更しました。"
+      updated_not_active: "パスワードを変更しました。新しいパスワードでログインしてください。"
     sessions:
       signed_in: "ログインしました。"
       signed_out: "ログアウトしました。"
       already_signed_out: "すでにログアウトしています。"
+  errors:
+    messages:
+      expired: "の有効期限が切れています。もう一度、再設定を申請してください"
+      not_found: "は登録されていません"
+      already_confirmed: "はすでに確認済みです"
+      not_locked: "はロックされていません"
+      not_saved:
+        other: "%{count}件のエラーがあります"
