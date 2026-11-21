@@ -1,0 +1,19 @@
+<%# 共通ヘッダー。メニューの中身は、各画面（先生用・保護者用）が content_for(:menu) で渡す %>
+<header>
+  <nav class="navbar navbar-expand-md bg-body-tertiary border-bottom">
+    <div class="container">
+      <%= link_to "ふりかえ帳", "/", class: "navbar-brand" %>
+      <% if content_for?(:menu) %>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#main-menu"
+                aria-controls="main-menu" aria-expanded="false" aria-label="メニューを開く">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="main-menu">
+          <ul class="navbar-nav ms-auto">
+            <%= yield :menu %>
+          </ul>
+        </div>
+      <% end %>
+    </div>
+  </nav>
+</header>

@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
   <head>
-    <title><%= content_for(:title) || "Piano Lesson Booking" %></title>
+    <title><%= content_for(:title) || "ふりかえ帳" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="application-name" content="Piano Lesson Booking">
+    <meta name="application-name" content="ふりかえ帳">
     <meta name="mobile-web-app-capable" content="yes">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
@@ -18,12 +18,18 @@
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/icon.png">
 
-    <%# Includes all stylesheet files in app/assets/stylesheets %>
+    <%# Bootstrap（vendor/assets/stylesheets）→ アプリ独自の CSS（app/assets/stylesheets）の順に読み込む %>
+    <%= stylesheet_link_tag "bootstrap.min", "data-turbo-track": "reload" %>
     <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
   </head>
 
   <body>
-    <%= yield %>
+    <%= render "shared/header" %>
+
+    <main class="container py-3">
+      <%= render "shared/flash" %>
+      <%= yield %>
+    </main>
   </body>
 </html>

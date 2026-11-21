@@ -301,7 +301,7 @@ MVPでは、「保護者が欠席を伝えてから振替を確定するまで�
 
 | 分類 | 技術 |
 |---|---|
-| 言語・フレームワーク | Ruby 3.4.12 / Ruby on Rails 8.1 |
+| 言語・フレームワーク | Ruby 3.4.13 / Ruby on Rails 8.1 |
 | フロントエンド | Hotwire（Turbo・Stimulus）、importmap |
 | DB | PostgreSQL 17 |
 | 認証 | Devise、devise_invitable（招待メール） |
