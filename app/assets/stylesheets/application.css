@@ -8,3 +8,16 @@
  *
  * Consider organizing styles into separate files for maintainability.
  */
+
+/* Bootstrap（vendor/assets/stylesheets/bootstrap.min.css）の上に重ねる、アプリ独自の調整 */
+
+/* 長い名前やメールアドレスで、スマホの画面が横にはみ出さないようにする */
+body {
+  overflow-wrap: anywhere;
+}
+
+/* スマホで押しやすいよう、メニューのリンクの高さを確保する */
+.navbar-nav .nav-link {
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+}

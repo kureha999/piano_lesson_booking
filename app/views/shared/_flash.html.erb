@@ -1,0 +1,6 @@
+<%# 保存・確定の結果（flash）を画面上部に表示する %>
+<% flash.each do |type, message| %>
+  <div class="alert <%= flash_class(type) %>" role="<%= type.to_s == "alert" ? "alert" : "status" %>">
+    <%= message %>
+  </div>
+<% end %>
