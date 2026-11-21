@@ -2,6 +2,9 @@
 class Student < ApplicationRecord
   belongs_to :guardian, class_name: "User", inverse_of: :students
 
+  # 毎週の固定枠。履歴（欠席）が指すので、固定枠がある生徒は削除できない
+  has_many :lesson_slots, dependent: :restrict_with_error
+
   validates :name, presence: true
   validate :guardian_must_be_guardian
 
