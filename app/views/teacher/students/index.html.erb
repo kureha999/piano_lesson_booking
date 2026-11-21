@@ -1,0 +1,27 @@
+<%# T-02 生徒一覧。今月の振替の利用回数は、M5 で追加する %>
+<% content_for :title, "生徒一覧 | ふりかえ帳" %>
+
+<h1 class="h4 mb-3">生徒一覧</h1>
+
+<% if @students.empty? %>
+  <p class="text-body-secondary">まだ生徒が登録されていません。</p>
+<% else %>
+  <div class="table-responsive">
+    <table class="table align-middle">
+      <thead>
+        <tr>
+          <th scope="col">生徒</th>
+          <th scope="col">保護者</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @students.each do |student| %>
+          <tr>
+            <td><%= student.name %></td>
+            <td><%= student.guardian.name %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% end %>

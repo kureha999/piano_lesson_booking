@@ -1,6 +1,10 @@
 <%# ログイン中のメニュー。ロールで出し分ける。画面を追加したら、README 12-4 のメニューに合わせて項目を足す %>
-<% home_label, home_path = current_user.teacher? ? [ "ダッシュボード", teacher_root_path ] : [ "ホーム", root_path ] %>
-<li class="nav-item"><%= link_to home_label, home_path, class: "nav-link" %></li>
+<% if current_user.teacher? %>
+  <li class="nav-item"><%= link_to "ダッシュボード", teacher_root_path, class: "nav-link" %></li>
+  <li class="nav-item"><%= link_to "生徒", teacher_students_path, class: "nav-link" %></li>
+<% else %>
+  <li class="nav-item"><%= link_to "ホーム", root_path, class: "nav-link" %></li>
+<% end %>
 <li class="nav-item">
   <%= button_to "ログアウト", destroy_user_session_path, method: :delete, class: "nav-link text-start w-100" %>
 </li>
