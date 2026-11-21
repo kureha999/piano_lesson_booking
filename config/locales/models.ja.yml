@@ -4,7 +4,11 @@ ja:
   activerecord:
     models:
       user: ユーザー
+      student: 生徒
     attributes:
+      student:
+        name: 名前
+        guardian: 保護者
       user:
         email: メールアドレス
         name: 名前

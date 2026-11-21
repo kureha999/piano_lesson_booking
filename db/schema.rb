@@ -10,9 +10,17 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_21_092810) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_21_121924) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "students", force: :cascade do |t|
+    t.bigint "guardian_id", null: false
+    t.string "name", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["guardian_id"], name: "index_students_on_guardian_id"
+  end
 
   create_table "users", force: :cascade do |t|
     t.string "email", default: "", null: false
@@ -28,4 +36,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_21_092810) do
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
     t.index ["role"], name: "index_users_on_role_teacher_only", unique: true, where: "(role = 1)"
   end
+
+  add_foreign_key "students", "users", column: "guardian_id"
 end
