@@ -84,6 +84,36 @@ RSpec.describe LessonSlot do
     end
   end
 
+  describe ".effective_on" do
+    it "指定した日が、適用開始日から適用終了日までの間（両端を含む）の枠だけを返す" do
+      open_ended = create(:lesson_slot, wday: 1, starts_on: Date.new(2026, 4, 1), ends_on: nil)
+      limited = create(:lesson_slot, wday: 2, starts_on: Date.new(2026, 4, 1), ends_on: Date.new(2026, 6, 30))
+      future = create(:lesson_slot, wday: 3, starts_on: Date.new(2026, 7, 1))
+
+      expect(described_class.effective_on(Date.new(2026, 3, 31))).to be_empty
+      expect(described_class.effective_on(Date.new(2026, 4, 1))).to contain_exactly(open_ended, limited)
+      expect(described_class.effective_on(Date.new(2026, 6, 30))).to contain_exactly(open_ended, limited)
+      expect(described_class.effective_on(Date.new(2026, 7, 1))).to contain_exactly(open_ended, future)
+    end
+  end
+
+  describe ".in_weekly_order と表示用のメソッド" do
+    it "曜日・開始時刻の順に並べる" do
+      sat = create(:lesson_slot, wday: 6, start_time: "09:00", end_time: "09:30")
+      wed_late = create(:lesson_slot, wday: 3, start_time: "17:00", end_time: "17:30")
+      wed_early = create(:lesson_slot, wday: 3, start_time: "16:00", end_time: "16:30")
+
+      expect(described_class.in_weekly_order).to eq [ wed_early, wed_late, sat ]
+    end
+
+    it "曜日の名前と時間の範囲を、日本語で返す" do
+      slot = build(:lesson_slot, wday: 0, start_time: "09:05", end_time: "10:00")
+
+      expect(slot.wday_name).to eq "日曜日"
+      expect(slot.time_range).to eq "09:05〜10:00"
+    end
+  end
+
   describe "固定枠どうしの重なり（先生は1人）" do
     let!(:existing) { create(:lesson_slot, wday: 3, start_time: "16:00", end_time: "16:30", starts_on: Date.new(2026, 4, 1), ends_on: nil) }
 
