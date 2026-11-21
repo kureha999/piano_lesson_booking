@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_22_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_22_000002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -27,6 +27,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_22_000001) do
     t.check_constraint "end_time > start_time", name: "lesson_slots_end_after_start"
     t.check_constraint "ends_on IS NULL OR ends_on >= starts_on", name: "lesson_slots_ends_on_after_starts_on"
     t.check_constraint "wday >= 0 AND wday <= 6", name: "lesson_slots_wday_range"
+  end
+
+  create_table "makeup_slots", force: :cascade do |t|
+    t.datetime "starts_at", null: false
+    t.datetime "ends_at", null: false
+    t.integer "capacity", default: 1, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+
+    t.check_constraint "capacity >= 1", name: "makeup_slots_capacity_positive"
+    t.check_constraint "ends_at > starts_at", name: "makeup_slots_ends_after_starts"
+    t.exclusion_constraint "tsrange(starts_at, ends_at) WITH &&", using: :gist, name: "makeup_slots_no_overlap"
   end
 
   create_table "students", force: :cascade do |t|
