@@ -38,13 +38,13 @@ RSpec.describe "layouts/application", type: :view do
       expect(links).to eq %w[ホーム ログアウト]
     end
 
-    it "先生には、ダッシュボード・生徒・固定枠・ログアウトを表示する" do
+    it "先生には、ダッシュボード・生徒・固定枠・振替枠・ログアウトを表示する" do
       sign_in create(:teacher)
 
       render template: "layouts/application"
 
       links = page.css("#main-menu .nav-link").map(&:text).map(&:strip)
-      expect(links).to eq %w[ダッシュボード 生徒 固定枠 ログアウト]
+      expect(links).to eq %w[ダッシュボード 生徒 固定枠 振替枠 ログアウト]
     end
 
     it "ログアウトは DELETE で送る" do

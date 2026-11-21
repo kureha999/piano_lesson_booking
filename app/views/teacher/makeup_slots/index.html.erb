@@ -1,0 +1,33 @@
+<%# T-06 振替枠の一覧。予約数は、振替の予約を作る issue で表示する。登録・編集（T-07）へのリンクは、T-07 を作る issue で追加する %>
+<% content_for :title, "振替枠 | ふりかえ帳" %>
+
+<h1 class="h4 mb-3">振替枠</h1>
+<p class="text-body-secondary">これから受け付ける振替枠です。</p>
+
+<% if @makeup_slots.empty? %>
+  <p class="text-body-secondary">これからの振替枠はありません。</p>
+<% else %>
+  <div class="table-responsive">
+    <table class="table align-middle">
+      <thead>
+        <tr>
+          <th scope="col">日付</th>
+          <th scope="col">時間</th>
+          <th scope="col">定員</th>
+          <th scope="col">予約数</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @makeup_slots.each do |slot| %>
+          <tr>
+            <td><%= japanese_date(slot.starts_at) %>（<%= I18n.t("date.abbr_day_names")[slot.starts_at.wday] %>）</td>
+            <td><%= slot.starts_at.strftime("%H:%M") %>〜<%= slot.ends_at.strftime("%H:%M") %></td>
+            <td><%= slot.capacity %>人</td>
+            <%# 予約数は、振替の予約（makeup_reservations）ができてから表示する %>
+            <td class="text-body-secondary">—</td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% end %>

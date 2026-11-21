@@ -11,6 +11,9 @@ class MakeupSlot < ApplicationRecord
   # 指定した時間（開始〜終了）と重なる振替枠。接しているだけ（終了と開始が同じ）は重ならない
   scope :overlapping, ->(starts_at, ends_at) { where("starts_at < ? AND ends_at > ?", ends_at, starts_at) }
 
+  # これから受け付ける枠（終了前の枠）。過去の枠は含めない。開始日時の順
+  scope :upcoming, -> { where("ends_at > ?", Time.current).order(:starts_at) }
+
   private
 
   def times_present?
