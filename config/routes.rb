@@ -1,18 +1,20 @@
 Rails.application.routes.draw do
-  devise_for :users
-  # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
+  # ログイン・ログアウト（C-01）。先生と保護者で同じ画面を使う。
+  # 新規登録の画面は作らない（保護者は招待、先生はコマンドで作成する）。パスワード再設定は別の issue で追加する。
+  devise_for :users, path: "", path_names: { sign_in: "login", sign_out: "logout" }, only: :sessions
+
+  # 先生の画面
+  namespace :teacher do
+    root "dashboard#show" # T-01 ダッシュボード
+  end
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
   # Can be used by load balancers and uptime monitors to verify that the app is live.
   get "up" => "rails/health#show", as: :rails_health_check
 
-  # Render dynamic PWA files from app/views/pwa/* (remember to link manifest in application.html.erb)
-  # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
-  # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
-
   # 開発環境で送ったメールの一覧（development のみ）
   mount LetterOpenerWeb::Engine, at: "/letter_opener" if Rails.env.development?
 
-  # Defines the root path route ("/")
-  # root "posts#index"
+  # P-01 ホーム（保護者）。先生が開いたら T-01 に移動する
+  root "home#show"
 end

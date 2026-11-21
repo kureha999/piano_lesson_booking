@@ -27,4 +27,34 @@ RSpec.describe "layouts/application", type: :view do
 
     expect(page.css(".navbar-toggler")).to be_empty
   end
+
+  describe "ログイン中のメニュー" do
+    it "保護者には、ホームとログアウトを表示する" do
+      sign_in create(:guardian)
+
+      render template: "layouts/application"
+
+      links = page.css("#main-menu .nav-link").map(&:text).map(&:strip)
+      expect(links).to eq %w[ホーム ログアウト]
+    end
+
+    it "先生には、ダッシュボードとログアウトを表示する" do
+      sign_in create(:teacher)
+
+      render template: "layouts/application"
+
+      links = page.css("#main-menu .nav-link").map(&:text).map(&:strip)
+      expect(links).to eq %w[ダッシュボード ログアウト]
+    end
+
+    it "ログアウトは DELETE で送る" do
+      sign_in create(:guardian)
+
+      render template: "layouts/application"
+
+      form = page.at_css("#main-menu form")
+      expect(form["action"]).to eq "/logout"
+      expect(form.at_css("input[name=_method]")["value"]).to eq "delete"
+    end
+  end
 end
