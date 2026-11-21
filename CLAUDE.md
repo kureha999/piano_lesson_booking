@@ -23,7 +23,7 @@
 
 ## 技術スタック
 
-- Ruby 3.4.12（mise で管理）／ Rails 8.1 ／ PostgreSQL 17（Homebrew、パスワードなしで接続）
+- Ruby 3.4.13（mise で管理）／ Rails 8.1 ／ PostgreSQL 17（Homebrew、パスワードなしで接続）
 - Hotwire（Turbo・Stimulus、importmap）。React は使わない
 - テスト：RSpec（rspec-rails 8.1）。Minitest は使わない（`rails new -T`）
 - 認証：Devise（予定）、認可：Pundit（予定）
