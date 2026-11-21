@@ -2,5 +2,12 @@
 # バリデーションのメッセージは、属性名と組み合わさって「名前を入力してください」のように表示される。
 ja:
   activerecord:
-    models: {}
-    attributes: {}
+    models:
+      user: ユーザー
+    attributes:
+      user:
+        email: メールアドレス
+        name: 名前
+        password: パスワード
+        password_confirmation: パスワード（確認）
+        role: 役割
