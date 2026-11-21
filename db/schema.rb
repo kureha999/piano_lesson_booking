@@ -10,9 +10,24 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_21_144510) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_22_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "lesson_slots", force: :cascade do |t|
+    t.bigint "student_id", null: false
+    t.integer "wday", null: false
+    t.time "start_time", null: false
+    t.time "end_time", null: false
+    t.date "starts_on", null: false
+    t.date "ends_on"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["student_id"], name: "index_lesson_slots_on_student_id"
+    t.check_constraint "end_time > start_time", name: "lesson_slots_end_after_start"
+    t.check_constraint "ends_on IS NULL OR ends_on >= starts_on", name: "lesson_slots_ends_on_after_starts_on"
+    t.check_constraint "wday >= 0 AND wday <= 6", name: "lesson_slots_wday_range"
+  end
 
   create_table "students", force: :cascade do |t|
     t.bigint "guardian_id", null: false
@@ -48,5 +63,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_21_144510) do
     t.index ["role"], name: "index_users_on_role_teacher_only", unique: true, where: "(role = 1)"
   end
 
+  add_foreign_key "lesson_slots", "students"
   add_foreign_key "students", "users", column: "guardian_id"
 end
