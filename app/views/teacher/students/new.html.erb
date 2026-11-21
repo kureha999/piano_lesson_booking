@@ -1,0 +1,6 @@
+<%# T-03 生徒の登録 %>
+<% content_for :title, "生徒の登録 | ふりかえ帳" %>
+
+<h1 class="h4 mb-3">生徒の登録</h1>
+
+<%= render "form", form: @form, url: teacher_students_path, method: :post, submit_label: "登録する" %>

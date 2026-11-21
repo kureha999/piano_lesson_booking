@@ -1,6 +1,13 @@
 # モデル名・属性名の日本語訳。モデルを追加したら、ここに訳を足す。
 # バリデーションのメッセージは、属性名と組み合わさって「名前を入力してください」のように表示される。
 ja:
+  # 生徒の登録・編集フォーム（StudentForm）の項目名
+  activemodel:
+    attributes:
+      student:
+        name: 生徒の呼び名
+        guardian_name: 保護者の名前
+        guardian_email: 保護者のメールアドレス
   activerecord:
     models:
       user: ユーザー

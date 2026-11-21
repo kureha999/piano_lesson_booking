@@ -6,7 +6,7 @@ Rails.application.routes.draw do
   # 先生の画面
   namespace :teacher do
     root "dashboard#show" # T-01 ダッシュボード
-    resources :students, only: :index # T-02 生徒一覧（追加・編集の T-03 は別の issue）
+    resources :students, only: %i[index new create edit update] # T-02 生徒一覧、T-03 生徒の登録・編集
   end
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.

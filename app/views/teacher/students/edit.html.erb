@@ -1,0 +1,6 @@
+<%# T-03 生徒の編集 %>
+<% content_for :title, "生徒の編集 | ふりかえ帳" %>
+
+<h1 class="h4 mb-3">生徒の編集</h1>
+
+<%= render "form", form: @form, url: teacher_student_path(@form.student), method: :patch, submit_label: "更新する" %>
