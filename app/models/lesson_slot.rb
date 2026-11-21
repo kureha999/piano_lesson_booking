@@ -16,6 +16,22 @@ class LessonSlot < ApplicationRecord
     ends_on ? slots.where("starts_on <= ?", ends_on) : slots
   }
 
+  # 指定した日に有効な枠（適用期間内）。適用終了日を過ぎた枠・まだ始まっていない枠は含まない
+  scope :effective_on, ->(date) { where(starts_on: ..date).where("ends_on IS NULL OR ends_on >= ?", date) }
+
+  # 曜日・開始時刻の順
+  scope :in_weekly_order, -> { order(:wday, :start_time, :id) }
+
+  # 「水曜日」のような曜日の名前
+  def wday_name
+    I18n.t("date.day_names")[wday]
+  end
+
+  # 「16:00〜16:30」
+  def time_range
+    "#{start_time.strftime('%H:%M')}〜#{end_time.strftime('%H:%M')}"
+  end
+
   private
 
   def end_time_after_start_time

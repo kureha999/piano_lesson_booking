@@ -1,0 +1,35 @@
+<%# T-04 固定枠の一覧。登録・編集（T-05）へのリンクは、T-05 を作る issue で追加する %>
+<% content_for :title, "固定枠 | ふりかえ帳" %>
+
+<h1 class="h4 mb-3">固定枠</h1>
+<p class="text-body-secondary">今日（<%= japanese_date(Date.current) %>）に有効な、毎週のレッスンです。</p>
+
+<% if @lesson_slots.empty? %>
+  <p class="text-body-secondary">まだ固定枠が登録されていません。</p>
+<% else %>
+  <div class="table-responsive">
+    <table class="table align-middle">
+      <thead>
+        <tr>
+          <th scope="col">曜日</th>
+          <th scope="col">時間</th>
+          <th scope="col">生徒</th>
+          <th scope="col">適用期間</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @lesson_slots.each do |slot| %>
+          <tr>
+            <td><%= slot.wday_name %></td>
+            <td><%= slot.time_range %></td>
+            <td><%= slot.student.name %></td>
+            <td>
+              <%= japanese_date(slot.starts_on) %>から
+              <%= slot.ends_on ? "#{japanese_date(slot.ends_on)}まで" : "（終了日なし）" %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% end %>
