@@ -1,9 +1,71 @@
 module Teacher
-  # T-04 固定枠の一覧（先生）。今日（日本時間）に有効な枠を、曜日・開始時刻の順に表示する
+  # T-04 固定枠の一覧、T-05 固定枠の登録・変更（先生）
   class LessonSlotsController < ApplicationController
     def index
       authorize LessonSlot
-      @lesson_slots = policy_scope(LessonSlot).effective_on(Date.current).includes(:student).in_weekly_order
+      @lesson_slots = effective_slots.includes(:student).in_weekly_order
+    end
+
+    def new
+      authorize LessonSlot
+      @form = LessonSlotForm.new(starts_on: Date.current)
+      load_students
+    end
+
+    def create
+      authorize LessonSlot
+      @form = LessonSlotForm.new(**form_params)
+
+      if @form.save
+        redirect_to teacher_lesson_slots_path, notice: "#{@form.student.name}さんの固定枠を登録しました。"
+      else
+        load_students
+        render :new, status: :unprocessable_content
+      end
+    end
+
+    def edit
+      @form = LessonSlotForm.for(find_slot)
+    end
+
+    def update
+      slot = find_slot
+      @form = LessonSlotForm.new(lesson_slot: slot, **form_params.except(:student_id), student_id: slot.student_id)
+
+      if @form.save
+        redirect_to teacher_lesson_slots_path, notice: updated_message(@form, slot)
+      else
+        render :edit, status: :unprocessable_content
+      end
+    end
+
+    private
+
+    # 今日に有効な枠だけ
+    def effective_slots
+      policy_scope(LessonSlot).effective_on(Date.current)
+    end
+
+    # 今日に有効でない枠（終了済み・まだ始まっていない枠）や、存在しない ID は、RecordNotFound になり、E-01（404）が表示される
+    def find_slot
+      slot = effective_slots.includes(:student).find(params[:id])
+      authorize slot
+      slot
+    end
+
+    def load_students
+      @students = policy_scope(Student).order(:id)
+    end
+
+    def form_params
+      params.expect(lesson_slot: %i[student_id wday start_time end_time starts_on]).to_h.symbolize_keys
+    end
+
+    def updated_message(form, slot)
+      name = slot.student.name
+      return "#{name}さんの固定枠は、変更がありませんでした。" if form.unchanged?
+
+      "#{name}さんの固定枠を変更しました。今の枠は前日で終了し、#{helpers.japanese_date(form.lesson_slot.starts_on)}から新しい枠になります。"
     end
   end
 end

@@ -1,0 +1,6 @@
+<%# T-05 固定枠の変更。今の枠は上書きせず、終了して新しい枠を作る %>
+<% content_for :title, "固定枠の変更 | ふりかえ帳" %>
+
+<h1 class="h4 mb-3">固定枠の変更</h1>
+
+<%= render "form", form: @form, url: teacher_lesson_slot_path(params[:id]), method: :patch, students: nil %>
