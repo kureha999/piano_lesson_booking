@@ -1,7 +1,7 @@
 # 先生と保護者。role で区別する。生徒（Student）はログインしないので、User ではない。
 class User < ApplicationRecord
-  # ログインは先生と保護者だけで、保護者は先生の招待で登録するため、:registerable は使わない
-  devise :database_authenticatable, :recoverable, :rememberable, :validatable
+  # ログインは先生と保護者だけで、保護者は先生の招待（:invitable）で登録するため、:registerable は使わない
+  devise :invitable, :database_authenticatable, :recoverable, :rememberable, :validatable
 
   # 保護者に属する生徒。生徒がいる間は、保護者を削除できない
   has_many :students, foreign_key: :guardian_id, inverse_of: :guardian, dependent: :restrict_with_error

@@ -18,7 +18,37 @@ RSpec.describe StudentForm do
       form.save
 
       expect(form.guardian.encrypted_password).to be_present
-      expect(form.guardian.valid_password?("password")).to be false
+      expect(form.guardian).not_to be_valid_password("password")
+    end
+
+    it "保護者に、パスワード設定の招待メールを1通送り、招待した先生を記録する" do
+      teacher = create(:teacher)
+      form = described_class.new(**attributes, invited_by: teacher)
+
+      expect { form.save }.to change { ActionMailer::Base.deliveries.size }.by(1)
+
+      mail = ActionMailer::Base.deliveries.last
+      expect(mail.to).to eq [ "hanako@example.com" ]
+      expect(mail.subject).to eq "【ふりかえ帳】パスワードの設定"
+      expect(form.guardian.reload).to have_attributes(invited_by: teacher, invitation_sent_at: be_present)
+      expect(form.guardian).to be_invited_to_sign_up
+      expect(form).to be_invitation_sent
+      expect(form).not_to be_invitation_failed
+    end
+
+    it "入力エラーで登録できないときは、保護者も作らず、招待メールも送らない" do
+      form = described_class.new(**attributes, guardian_email: "")
+
+      expect { form.save }.to not_change(User, :count).and not_change { ActionMailer::Base.deliveries.size }
+    end
+
+    it "招待メールを送れなくても、生徒と保護者の登録は取り消さず、送れなかったことを伝える" do
+      allow_any_instance_of(User).to receive(:deliver_invitation).and_raise(Net::SMTPFatalError, "送信エラー") # rubocop:disable RSpec/AnyInstance
+      form = described_class.new(**attributes)
+
+      expect { expect(form.save).to be true }.to change(Student, :count).by(1).and change(User.guardian, :count).by(1)
+      expect(form).to be_invitation_failed
+      expect(form).not_to be_invitation_sent
     end
 
     it "メールアドレスの前後の空白と大文字は、取り除いて保存する" do
@@ -41,6 +71,10 @@ RSpec.describe StudentForm do
       expect(guardian.students.pluck(:name)).to contain_exactly "はなこ", "たろう"
       expect(form.guardian).to eq guardian
       expect(form).not_to be_guardian_created
+    end
+
+    it "招待メールは送らない（すでに使い始めている保護者に、パスワード設定を求めない）" do
+      expect { described_class.new(**attributes).save }.not_to change { ActionMailer::Base.deliveries.size }
     end
 
     it "大文字・前後の空白が違っていても、同じ保護者として扱う" do

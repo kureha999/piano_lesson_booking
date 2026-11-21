@@ -3,6 +3,7 @@ ja:
     failure:
       already_authenticated: "すでにログインしています。"
       inactive: "アカウントが有効になっていません。"
+      invited: "招待メールのリンクから、パスワードを設定してください。"
       invalid: "メールアドレスまたはパスワードが正しくありません。"
       locked: "アカウントがロックされています。"
       last_attempt: "あと1回間違えると、アカウントがロックされます。"
@@ -10,7 +11,13 @@ ja:
       timeout: "しばらく操作がなかったため、ログアウトしました。もう一度ログインしてください。"
       unauthenticated: "ログインしてください。"
       unconfirmed: "メールアドレスの確認が必要です。"
+    invitations:
+      invitation_token_invalid: "招待のリンクが正しくないか、すでに使われています。パスワードを設定済みの場合は、ログインしてください。"
+      updated: "パスワードを設定しました。"
+      updated_not_active: "パスワードを設定しました。ログインしてください。"
     mailer:
+      invitation_instructions:
+        subject: "【ふりかえ帳】パスワードの設定"
       reset_password_instructions:
         subject: "【ふりかえ帳】パスワードの再設定"
     passwords:

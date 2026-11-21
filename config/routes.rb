@@ -1,7 +1,9 @@
 Rails.application.routes.draw do
   # ログイン・ログアウト（C-01）。先生と保護者で同じ画面を使う。
-  # 新規登録の画面は作らない（保護者は招待、先生はコマンドで作成する）。パスワード再設定（C-03・C-04）は /password/new・/password/edit
-  devise_for :users, path: "", path_names: { sign_in: "login", sign_out: "logout" }, only: %i[sessions passwords]
+  # 新規登録の画面は作らない（保護者は招待、先生はコマンドで作成する）。パスワード再設定（C-03・C-04）は /password/new・/password/edit。
+  # 招待メールのリンクから開くパスワード設定（C-02）は /invitation/accept
+  devise_for :users, path: "", path_names: { sign_in: "login", sign_out: "logout" },
+    only: %i[sessions passwords invitations], controllers: { invitations: "users/invitations" }
 
   # 先生の画面
   namespace :teacher do

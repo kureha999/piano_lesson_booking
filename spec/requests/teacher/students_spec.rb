@@ -89,7 +89,26 @@ RSpec.describe "生徒の一覧・登録・編集（T-02・T-03）", type: :requ
 
         expect(response).to redirect_to teacher_students_path
         follow_redirect!
-        expect(response.body).to include "たろうさんと保護者（山田花子さん）を登録しました。"
+        expect(response.body).to include "たろうさんと保護者（山田花子さん）を登録しました。", "hanako@example.com に、パスワード設定の招待メールを送りました。"
+      end
+
+      it "新しい保護者に招待メールを1通送り、2人目の登録では送らない" do
+        expect { post teacher_students_path, params: valid_params }
+          .to change { ActionMailer::Base.deliveries.size }.by(1)
+
+        expect {
+          post teacher_students_path, params: { student: valid_params[:student].merge(name: "はなこ") }
+        }.not_to change { ActionMailer::Base.deliveries.size }
+        expect(User.guardian.sole.invited_by).to eq User.teacher.sole
+      end
+
+      it "招待メールを送れなかったときは、登録はそのままで、パスワードを設定してもらう方法を伝える" do
+        allow_any_instance_of(User).to receive(:deliver_invitation).and_raise(Net::SMTPFatalError, "送信エラー") # rubocop:disable RSpec/AnyInstance
+
+        expect { post teacher_students_path, params: valid_params }.to change(Student, :count).by(1)
+
+        follow_redirect!
+        expect(response.body).to include "たろうさんと保護者（山田花子さん）を登録しました。", "招待メールを送れませんでした", "パスワードを忘れた方"
       end
 
       it "同じメールアドレスで2人目を登録すると、保護者は1人のまま、生徒が2人になる" do
