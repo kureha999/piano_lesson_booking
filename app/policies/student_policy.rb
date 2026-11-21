@@ -1,8 +1,16 @@
-# 生徒。一覧は先生だけが開ける。
+# 生徒。一覧・登録・編集は先生だけができる。
 # 保護者向けの画面（自分の子どもだけ）は、Scope で自分の生徒に絞って使う。
 class StudentPolicy < ApplicationPolicy
   def index?
-    user&.teacher? || false
+    teacher?
+  end
+
+  def create?
+    teacher?
+  end
+
+  def update?
+    teacher?
   end
 
   class Scope < ApplicationPolicy::Scope
@@ -13,5 +21,11 @@ class StudentPolicy < ApplicationPolicy
 
       user.teacher? ? scope.all : scope.where(guardian_id: user.id)
     end
+  end
+
+  private
+
+  def teacher?
+    user&.teacher? || false
   end
 end

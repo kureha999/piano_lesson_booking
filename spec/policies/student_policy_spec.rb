@@ -1,21 +1,19 @@
 require "rails_helper"
 
 RSpec.describe StudentPolicy do
-  describe "#index?" do
-    it "先生は許可する" do
-      expect(described_class.new(build(:teacher), Student).index?).to be true
-    end
-
-    it "保護者とログインしていない人は許可しない" do
-      expect(described_class.new(build(:guardian), Student).index?).to be false
-      expect(described_class.new(nil, Student).index?).to be false
+  # 一覧・登録（new?）・編集（edit?）は先生だけ。保護者とログインしていない人は、どれも許可しない
+  %i[index? create? new? update? edit?].each do |action|
+    it "#{action} は、先生だけに許可する" do
+      expect(described_class.new(build(:teacher), Student).public_send(action)).to be true
+      expect(described_class.new(build(:guardian), Student).public_send(action)).to be false
+      expect(described_class.new(nil, Student).public_send(action)).to be false
     end
   end
 
-  it "一覧以外の操作は、まだ許可しない" do
+  it "詳細表示と削除は、先生にも許可しない（画面がない）" do
     policy = described_class.new(build(:teacher), Student)
 
-    expect([ policy.show?, policy.create?, policy.update?, policy.destroy? ]).to all(be false)
+    expect([ policy.show?, policy.destroy? ]).to all(be false)
   end
 
   describe "Scope" do
