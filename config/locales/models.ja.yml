@@ -11,3 +11,4 @@ ja:
         password: パスワード
         password_confirmation: パスワード（確認）
         role: 役割
+        remember_me: ログインしたままにする
