@@ -3,6 +3,9 @@ class User < ApplicationRecord
   # ログインは先生と保護者だけで、保護者は先生の招待で登録するため、:registerable は使わない
   devise :database_authenticatable, :recoverable, :rememberable, :validatable
 
+  # 保護者に属する生徒。生徒がいる間は、保護者を削除できない
+  has_many :students, foreign_key: :guardian_id, inverse_of: :guardian, dependent: :restrict_with_error
+
   enum :role, { guardian: 0, teacher: 1 }, default: :guardian
 
   validates :name, presence: true
