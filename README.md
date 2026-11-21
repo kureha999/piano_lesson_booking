@@ -305,6 +305,7 @@ MVPでは、「保護者が欠席を伝えてから振替を確定するまで�
 | フロントエンド | Hotwire（Turbo・Stimulus）、importmap |
 | DB | PostgreSQL 17 |
 | 認証 | Devise、devise_invitable（招待メール） |
+| 認可 | Pundit |
 | テスト・静的解析 | RSpec、factory_bot_rails、SimpleCov、RuboCop（rubocop-rails-omakase）、Brakeman、bundler-audit |
 | CI/CD | GitHub Actions |
 | インフラ | AWS（EC2・RDS・S3・CloudFront）、Terraform でコード化 |
@@ -324,6 +325,8 @@ MVPでは、「保護者が欠席を伝えてから振替を確定するまで�
 | | MySQL | 不採用 | 機能面の差は小さいが、今回は開発環境と本番環境をPostgreSQLで揃える |
 | 認証 | **Devise** | 採用 | 招待メール・パスワード再設定まで実績のある方法で実装でき、MVPの工数を抑えられる |
 | | has_secure_password で自作 | 不採用 | 学習にはなるが、パスワード再設定などを自分で実装すると、MVPの検証から外れた工数が増える |
+| 認可 | **Pundit** | 採用 | ポリシーが「ユーザーとデータを受け取って true/false を返す」だけの普通の Ruby クラスで、学習が少ない。ApplicationPolicy を「何も許可しない」にして許可する操作だけを書く方針と合い、`verify_authorized` で権限チェックの呼び忘れも検出できる。MIT ライセンスで無料。利用実績が多く（2.5.2、RubyGems のダウンロード数は約1.2億）、情報も多い |
+| | Action Policy | 不採用 | キャッシュ・ルールの合成・失敗理由の取得など機能は多い（MIT・0.7.8）。ただ、この教室のロールは先生と保護者の2つで、ルールは「ロール」と「自分の家庭のデータか」だけのため、機能を使いこなす場面がない。利用実績も Pundit より少ない（ダウンロード数は約860万） |
 | テスト | **RSpec** | 採用 | 振替ルールのような条件分岐の多いロジックを、仕様として読める形で書ける |
 | | Minitest | 不採用 | Rails標準だが、本業で使い慣れたRSpecを優先する |
 | インフラ | **AWS + Terraform** | 採用 | 本業の経験を活かし、構成のコード化まで含めて、小規模事業者向けの構築案件の見本にする |
