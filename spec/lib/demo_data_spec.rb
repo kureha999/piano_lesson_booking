@@ -1,4 +1,5 @@
 require "rails_helper"
+require "rake"
 
 RSpec.describe DemoData do
   # 2026年11月11日（水）。今週は 11/9（月）〜11/15（日）
@@ -126,18 +127,37 @@ RSpec.describe DemoData do
   end
 
   describe "db:seed" do
-    it "デモデータを作り、アカウントとパスワードを表示する" do
-      output = capture_stdout { load Rails.root.join("db/seeds.rb") }
+    # bin/rails db:seed を直接実行したときの、Rake の最上位のタスク
+    def run_seeds_as(*top_level_tasks)
+      allow(Rake.application).to receive(:top_level_tasks).and_return(top_level_tasks)
+      capture_stdout { load Rails.root.join("db/seeds.rb") }
+    end
+
+    it "bin/rails db:seed を直接実行したときは、デモデータを作り、アカウントとパスワードを表示する" do
+      output = run_seeds_as("db:seed")
 
       expect(output).to include "デモデータを作りました（すべて架空のデータです）。", "teacher@demo.example.com", "hanako@demo.example.com",
         "パスワード（共通）：password123"
       expect(User.count).to eq 4
     end
 
-    it "作れないときは、理由を表示して止まる" do
+    it "db:prepare・db:setup・db:reset（新しい DB を作るとき）から読み込まれたときは、何も作らず、止まりもしない" do
+      %w[db:prepare db:setup db:reset].each do |task|
+        expect { run_seeds_as(task) }.not_to raise_error
+      end
+
+      expect(User.count).to eq 0
+    end
+
+    it "テストの実行中（Rake のタスクではない）は、何も作らない" do
+      expect { capture_stdout { load Rails.root.join("db/seeds.rb") } }.not_to change(User, :count)
+    end
+
+    it "直接実行して、作れないときは、理由を表示して止まる（何も消さない）" do
       create(:guardian, email: "real@example.com")
 
-      expect { capture_stdout { load Rails.root.join("db/seeds.rb") } }.to raise_error(SystemExit)
+      expect { run_seeds_as("db:seed") }.to raise_error(SystemExit)
+      expect(User.pluck(:email)).to eq [ "real@example.com" ]
     end
   end
 

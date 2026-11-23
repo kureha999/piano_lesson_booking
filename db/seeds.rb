@@ -1,5 +1,11 @@
 # bin/rails db:seed：動作確認とデモ動画のための、架空の教室のデータを作る（lib/demo_data.rb）。
 # 実行のたびに、ふりかえ帳のデータをすべて消して、作り直す。デモ用ではないユーザーがいる DB・本番環境では、何も作らずに止まる。
+#
+# db:prepare・db:setup・db:reset も、新しい DB を作るときに、このファイルを読み込む（CI のテスト用 DB、本番のデプロイ、bin/setup）。
+# そのとき、デモデータを作ってしまわないよう、「bin/rails db:seed を直接実行したとき」だけ作る。
+explicit_seed = defined?(Rake) && Rake.application.top_level_tasks.any? { |task| task.start_with?("db:seed") }
+return unless explicit_seed
+
 begin
   result = DemoData.load
 rescue DemoData::Refused => e
