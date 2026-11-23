@@ -3,6 +3,27 @@
 <h1 class="h4">ダッシュボード</h1>
 <p><%= current_user.name %>先生、こんにちは。</p>
 
+<% unless @setup.complete? %>
+  <%# 初期設定の残りの手順（すべて終わると、この表示は消える）。各手順の画面へのリンクを置く %>
+  <section class="card border-primary mb-4" aria-labelledby="setup-heading">
+    <div class="card-body">
+      <h2 class="h5 card-title" id="setup-heading">初期設定の残り手順</h2>
+      <p class="text-body-secondary">次の手順を済ませると、保護者が欠席連絡と振替の予約を使えるようになります。</p>
+      <ol class="list-unstyled mb-0">
+        <% @setup.steps.each do |step| %>
+          <li class="mb-1">
+            <% if step.done? %>
+              <span class="text-body-secondary"><span aria-hidden="true">✓</span> <s><%= step.label %></s>（完了）</span>
+            <% else %>
+              <%= link_to step.label, setup_step_path(step.key) %>
+            <% end %>
+          </li>
+        <% end %>
+      </ol>
+    </div>
+  </section>
+<% end %>
+
 <h2 class="h5 mt-4">今週の欠席・振替</h2>
 <p class="text-body-secondary">
   <%= japanese_date_with_wday(@week.begin) %>〜<%= japanese_date_with_wday(@week.end) %>

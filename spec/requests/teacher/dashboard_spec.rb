@@ -28,8 +28,8 @@ RSpec.describe "先生のダッシュボード（T-01）", type: :request do
       get teacher_root_path
 
       expect(response).to have_http_status :ok
-      expect(page.at_css("h2").text).to eq "今週の欠席・振替"
-      expect(page.at_css("h2 + p").text.squish).to eq "11月9日（月）〜11月15日（日）"
+      heading = page.css("h2").find { |h2| h2.text == "今週の欠席・振替" }
+      expect(heading.next_element.text.squish).to eq "11月9日（月）〜11月15日（日）"
     end
 
     it "今週の欠席と振替予約を、日付順に表示する" do
@@ -92,6 +92,68 @@ RSpec.describe "先生のダッシュボード（T-01）", type: :request do
 
       expect(response.body).to include "今週の欠席・振替はありません。"
       expect(page.css("table")).to be_empty
+    end
+  end
+
+  describe "初期設定の残り手順" do
+    before { sign_in create(:teacher) }
+
+    def setup_card
+      page.at_css("section[aria-labelledby='setup-heading']")
+    end
+
+    def step_links
+      setup_card.css("li a").to_h { |link| [ link.text, link["href"] ] }
+    end
+
+    it "何も登録していないときは、4つの手順を、各画面へのリンクつきで表示する" do
+      get teacher_root_path
+
+      expect(setup_card.at_css("h2").text).to eq "初期設定の残り手順"
+      expect(step_links).to eq(
+        "① 生徒を登録する" => new_teacher_student_path,
+        "② 固定枠を設定する" => new_teacher_lesson_slot_path,
+        "② 振替枠を登録する" => new_teacher_makeup_slot_path,
+        "③ 振替ルールを確認する" => edit_teacher_makeup_rule_path
+      )
+    end
+
+    it "終わった手順は完了の表示にし、リンクを外す。残りの手順だけリンクにする" do
+      create(:lesson_slot) # 生徒と固定枠が終わる
+
+      get teacher_root_path
+
+      expect(step_links.keys).to eq [ "② 振替枠を登録する", "③ 振替ルールを確認する" ]
+      done = setup_card.css("li").first(2).map { |li| li.text.squish }
+      expect(done).to eq [ "✓ ① 生徒を登録する（完了）", "✓ ② 固定枠を設定する（完了）" ]
+    end
+
+    it "振替ルールは、保存すると完了になる（行がない間は初期値で動くが、未完了と表示する）" do
+      get teacher_root_path
+      expect(step_links.keys).to include "③ 振替ルールを確認する"
+
+      patch teacher_makeup_rule_path, params: { makeup_rule: { monthly_limit: "2", valid_days: "30", absence_deadline_hours: "2", reservation_deadline_days: "1" } }
+      get teacher_root_path
+
+      expect(step_links.keys).not_to include "③ 振替ルールを確認する"
+    end
+
+    it "すべて終わると、手順の表示が消える" do
+      create(:lesson_slot)
+      create(:makeup_slot)
+      MakeupRule.current.save!
+
+      get teacher_root_path
+
+      expect(setup_card).to be_nil
+      expect(response.body).not_to include "初期設定の残り手順"
+      expect(page.at_css("h1").text).to eq "ダッシュボード"
+    end
+
+    it "手順の表示の有無にかかわらず、今週の欠席・振替は表示する" do
+      get teacher_root_path
+
+      expect(response.body).to include "今週の欠席・振替"
     end
   end
 
