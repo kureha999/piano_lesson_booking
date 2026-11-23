@@ -1,4 +1,4 @@
-<%# T-02 生徒一覧。今月の振替の利用回数は、M5 で追加する %>
+<%# T-02 生徒一覧。生徒ごとに、今月の振替の利用回数（その月に振替権が付いた欠席の数）を表示する %>
 <% content_for :title, "生徒一覧 | ふりかえ帳" %>
 
 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -15,6 +15,7 @@
         <tr>
           <th scope="col">生徒</th>
           <th scope="col">保護者</th>
+          <th scope="col">今月の振替の利用回数</th>
           <th scope="col"><span class="visually-hidden">操作</span></th>
         </tr>
       </thead>
@@ -23,6 +24,7 @@
           <tr>
             <td><%= student.name %></td>
             <td><%= student.guardian.name %></td>
+            <td><%= @usage_counts.fetch(student.id, 0) %>回 <span class="text-body-secondary">（上限 <%= @monthly_limit %>回）</span></td>
             <td class="text-end"><%= link_to "編集", edit_teacher_student_path(student), aria: { label: "#{student.name}さんを編集" } %></td>
           </tr>
         <% end %>
