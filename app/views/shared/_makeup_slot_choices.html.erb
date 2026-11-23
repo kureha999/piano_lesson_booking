@@ -1,0 +1,34 @@
+<%# 予約できる振替枠の一覧（P-02）。欠席する流れ（absences/new）と、未使用の振替権から選ぶ流れ（makeup_reservations/new）で共通。
+    locals: slots（予約できる枠）、reason_counts（枠がないときの理由）、period（受講できる期間）、expires_on（振替権の期限）、
+            confirm_path（P-03 の URL）、confirm_params（P-03 に渡すパラメーター）、later_message（枠がないときの案内） %>
+<% if slots.empty? %>
+  <div class="alert alert-warning" role="status">
+    <p class="fw-bold mb-1">いま選べる振替枠がありません。</p>
+    <% if reason_counts.empty? %>
+      <p class="mb-0">先生が登録した振替枠が、まだありません。</p>
+    <% else %>
+      <ul class="mb-0">
+        <% reason_counts.each_key do |reason| %>
+          <% message = makeup_unavailable_message(reason, period) %>
+          <%= tag.li(message) if message %>
+        <% end %>
+      </ul>
+    <% end %>
+  </div>
+  <p class="text-body-secondary"><%= later_message %>（期限は <%= japanese_date(expires_on) %> までです）</p>
+<% else %>
+  <ul class="list-group mb-4">
+    <% slots.each do |slot| %>
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        <span>
+          <%= makeup_slot_text(slot) %>
+          <span class="text-body-secondary">（残り<%= slot.capacity - slot.reserved_count %>名）</span>
+        </span>
+        <%= button_to "この枠にする", confirm_path, method: :get,
+              params: confirm_params.merge(makeup_slot_id: slot.id), class: "btn btn-primary btn-sm",
+              form: { class: "d-inline" },
+              aria: { label: "#{makeup_slot_text(slot)}の枠にする" } %>
+      </li>
+    <% end %>
+  </ul>
+<% end %>

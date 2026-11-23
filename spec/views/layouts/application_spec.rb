@@ -29,13 +29,13 @@ RSpec.describe "layouts/application", type: :view do
   end
 
   describe "ログイン中のメニュー" do
-    it "保護者には、ホームとログアウトを表示する" do
+    it "保護者には、ホーム・予定一覧・ログアウトを表示する" do
       sign_in create(:guardian)
 
       render template: "layouts/application"
 
       links = page.css("#main-menu .nav-link").map(&:text).map(&:strip)
-      expect(links).to eq %w[ホーム ログアウト]
+      expect(links).to eq %w[ホーム 予定一覧 ログアウト]
     end
 
     it "先生には、ダッシュボード・生徒・固定枠・振替枠・振替ルール・ログアウトを表示する" do

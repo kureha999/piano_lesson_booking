@@ -1,0 +1,58 @@
+<%# P-05 予定一覧。子どもごとに、今後8週間の固定レッスンと振替予約を日付順に表示し、未使用の振替権から振替を選べる %>
+<% content_for :title, "予定一覧 | ふりかえ帳" %>
+<h1 class="h4 mb-3">予定一覧</h1>
+
+<% if @summaries.empty? %>
+  <p class="text-body-secondary">お子さんがまだ登録されていません。先生にお問い合わせください。</p>
+<% end %>
+
+<% @summaries.each do |summary| %>
+  <% student = summary.student %>
+  <section class="card mb-4" aria-labelledby="student-<%= student.id %>">
+    <div class="card-body">
+      <h2 class="h5 card-title" id="student-<%= student.id %>"><%= student.name %>さん</h2>
+
+      <h3 class="h6">今後の予定（8週間）</h3>
+      <% if summary.entries.empty? %>
+        <p class="text-body-secondary">今後8週間の予定はありません。</p>
+      <% else %>
+        <ul class="list-group mb-3" aria-label="<%= student.name %>さんの今後の予定">
+          <% summary.entries.each do |entry| %>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <span>
+                <%= japanese_date_with_wday(entry.starts_at.to_date) %>
+                <%= entry.starts_at.strftime("%H:%M") %>〜<%= entry.ends_at.strftime("%H:%M") %>
+              </span>
+              <% if entry.makeup? %>
+                <span class="badge text-bg-primary">振替（<%= japanese_date_with_wday(entry.reservation.makeup_credit.absence.lesson_on) %>の欠席の分）</span>
+              <% elsif entry.absent %>
+                <span class="badge text-bg-secondary">欠席連絡ずみ</span>
+              <% else %>
+                <span class="badge text-bg-light border">固定レッスン</span>
+              <% end %>
+            </li>
+          <% end %>
+        </ul>
+      <% end %>
+
+      <h3 class="h6">未使用の振替権</h3>
+      <% if summary.unused_credits.empty? %>
+        <p class="text-body-secondary mb-0">未使用の振替権はありません。</p>
+      <% else %>
+        <ul class="list-group">
+          <% summary.unused_credits.each do |credit| %>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <span>
+                <%= japanese_date(credit.absence.lesson_on) %>の欠席の分
+                <span class="text-body-secondary">（<%= japanese_date(credit.expires_on) %>まで）</span>
+              </span>
+              <%= link_to "振替を選ぶ", new_student_makeup_credit_makeup_reservation_path(student, credit),
+                    class: "btn btn-primary btn-sm",
+                    aria: { label: "#{japanese_date(credit.absence.lesson_on)}の欠席の分の振替を選ぶ" } %>
+            </li>
+          <% end %>
+        </ul>
+      <% end %>
+    </div>
+  </section>
+<% end %>

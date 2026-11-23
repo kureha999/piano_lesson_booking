@@ -1,0 +1,22 @@
+<%# P-03 確認（未使用の振替権から）。確定する内容を1画面で表示する %>
+<% content_for :title, "確認 | ふりかえ帳" %>
+<% absence = @credit.absence %>
+
+<h1 class="h4 mb-3">内容の確認</h1>
+
+<div class="card mb-3">
+  <div class="card-body">
+    <p class="mb-2"><strong><%= @student.name %>さん</strong></p>
+    <p class="fs-5 mb-0">
+      <%= japanese_date_with_wday(absence.lesson_on) %>の欠席の分を、<br>
+      <%= japanese_date_with_wday(@makeup_slot.starts_at.to_date) %>に振替
+    </p>
+    <p class="text-body-secondary mt-2 mb-0">振替：<%= makeup_slot_text(@makeup_slot) %></p>
+  </div>
+</div>
+
+<%= form_with url: student_makeup_credit_makeup_reservations_path(@student, @credit), method: :post, class: "d-flex gap-2" do |f| %>
+  <%= f.hidden_field :makeup_slot_id, value: @makeup_slot.id %>
+  <%= f.submit "確定する", class: "btn btn-primary" %>
+  <%= link_to "戻る", new_student_makeup_credit_makeup_reservation_path(@student, @credit), class: "btn btn-outline-secondary" %>
+<% end %>
