@@ -13,6 +13,10 @@ class AbsencePolicy < ApplicationPolicy
     guardian?
   end
 
+  def show?
+    guardian?
+  end
+
   private
 
   def guardian?

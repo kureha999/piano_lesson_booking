@@ -1,11 +1,14 @@
 # 保護者の欠席連絡（P-01 のレッスンの「欠席する」から始まる流れ。README 12-5②）。
 #   P-02 振替枠の選択（new）：ルールの範囲内で予約できる枠だけを表示する
-#   P-03 確認・P-04 完了：#47
-# まだ欠席は登録しない（P-03 の「確定する」で、欠席連絡と振替の予約をまとめて確定する）。
+#   P-03 確認（confirm）：確定する内容を表示する。振替権が付かない場合は、その理由も表示する
+#   P-03 の「確定する」（create）：欠席・振替権・振替予約を1つのトランザクションで作る。失敗したら、何も登録せずに戻す
+#   P-04 完了（show）
+# P-02 と P-03 では、まだ欠席を登録しない。どのレッスンか・どの枠を選んだかは、URL のパラメーターで渡す。
 class AbsencesController < ApplicationController
   before_action { authorize :absence } # 保護者だけ（先生は、ホームに戻される）
   before_action :set_student
-  before_action :set_lesson, only: :new
+  before_action :set_lesson, only: %i[new confirm create]
+  before_action :set_makeup_slot, only: %i[confirm create]
 
   # P-02 振替枠の選択
   def new
@@ -13,11 +16,40 @@ class AbsencesController < ApplicationController
     # 振替権が付かない欠席（締切後・月の上限を超えた）は、振替枠を選べないので P-02 を飛ばして P-03 に進む
     return redirect_to confirm_student_absences_path(@student, lesson_params) unless eligibility.eligible?
 
-    credit = MakeupCredit.new(student: @student, absence: @absence, expires_on: eligibility.expires_on)
-    @availability = MakeupSlotAvailability.new(credit)
+    @availability = availability_for(eligibility)
     @slots = @availability.slots
     @expires_on = eligibility.expires_on
     @reason_counts = @slots.empty? ? @availability.unavailable_reason_counts : {}
+  end
+
+  # P-03 確認
+  def confirm
+    @eligibility = MakeupCreditEligibility.new(@absence)
+    @expires_on = @eligibility.expires_on
+    return unless @makeup_slot
+
+    # 枠を選んだのに、振替権が付かない（P-02 を開いた後に締切を過ぎた）・枠が予約できなくなった場合は、選び直してもらう
+    return redirect_to confirm_student_absences_path(@student, lesson_params), alert: no_credit_alert unless @eligibility.eligible?
+
+    reason = availability_for(@eligibility).unavailable_reason(@makeup_slot)
+    redirect_to new_student_absence_path(@student, lesson_params), alert: slot_alert(reason) if reason
+  end
+
+  # P-03 の「確定する」
+  def create
+    result = ConfirmAbsence.call(lesson_slot: @absence.lesson_slot, lesson_on: @absence.lesson_on,
+      reported_by: current_user, makeup_slot: @makeup_slot)
+    return redirect_to student_absence_path(@student, result.absence) if result.success?
+
+    redirect_after_failure(result.reason)
+  end
+
+  # P-04 完了
+  def show
+    @absence = Absence.joins(:lesson_slot).where(lesson_slots: { student_id: @student.id }).find(params[:id])
+    @makeup_credit = @absence.makeup_credit
+    @reservation = @makeup_credit&.active_reservation
+    @rule = MakeupRule.current
   end
 
   private
@@ -34,6 +66,41 @@ class AbsencesController < ApplicationController
     return if @absence.valid?
 
     redirect_to root_path, alert: "このレッスンは欠席を連絡できません。#{@absence.errors.full_messages.to_sentence}"
+  end
+
+  # 選んだ振替枠。「振替は後で選ぶ」のときは指定しない。存在しない枠を指定されたら、選び直してもらう
+  def set_makeup_slot
+    return if params[:makeup_slot_id].blank?
+
+    @makeup_slot = MakeupSlot.find_by(id: params[:makeup_slot_id])
+    redirect_to new_student_absence_path(@student, lesson_params), alert: slot_alert(:not_found) unless @makeup_slot
+  end
+
+  # まだ登録していない欠席に付く予定の振替権で、予約できる枠を調べる
+  def availability_for(eligibility)
+    MakeupSlotAvailability.new(MakeupCredit.new(student: @student, absence: @absence, expires_on: eligibility.expires_on))
+  end
+
+  def redirect_after_failure(reason)
+    case reason
+    when :invalid
+      redirect_to root_path, alert: "このレッスンは欠席を連絡できません。"
+    when :no_credit
+      redirect_to confirm_student_absences_path(@student, lesson_params), alert: no_credit_alert
+    else
+      redirect_to new_student_absence_path(@student, lesson_params), alert: slot_alert(reason)
+    end
+  end
+
+  def no_credit_alert
+    "振替権が付かなくなったため、振替枠は選べません。欠席だけを連絡する場合は、このまま確定してください。"
+  end
+
+  # 選んだ枠を予約できなかったときのメッセージ。先に予約されて埋まった場合は、その旨を伝える
+  def slot_alert(reason)
+    return "選んだ枠は予約が埋まりました。ほかの枠を選んでください。" if reason == :full
+
+    "選んだ枠は予約できなくなりました。ほかの枠を選んでください。"
   end
 
   def parse_date(value)

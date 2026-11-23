@@ -1,0 +1,47 @@
+<%# P-03 確認。確定する内容を1画面で表示する。振替権が付かない欠席では、その理由も表示する %>
+<% content_for :title, "確認 | ふりかえ帳" %>
+<%
+  lesson = @absence.lesson_slot
+  lesson_text = "#{japanese_date_with_wday(@absence.lesson_on)} #{lesson.time_range}"
+  lesson_params = { lesson_slot_id: lesson.id, lesson_on: @absence.lesson_on }
+  back_path = @eligibility.eligible? ? new_student_absence_path(@student, lesson_params) : root_path
+%>
+
+<h1 class="h4 mb-3">内容の確認</h1>
+
+<div class="card mb-3">
+  <div class="card-body">
+    <p class="mb-2"><strong><%= @student.name %>さん</strong></p>
+    <% if @makeup_slot %>
+      <p class="fs-5 mb-0">
+        <%= japanese_date_with_wday(@absence.lesson_on) %>を欠席し、<br>
+        <%= japanese_date_with_wday(@makeup_slot.starts_at.to_date) %>に振替
+      </p>
+      <p class="text-body-secondary mt-2 mb-0">
+        欠席：<%= lesson_text %><br>
+        振替：<%= makeup_slot_text(@makeup_slot) %>
+      </p>
+    <% else %>
+      <p class="fs-5 mb-0"><%= japanese_date_with_wday(@absence.lesson_on) %>を欠席します</p>
+      <p class="text-body-secondary mt-2 mb-0">欠席：<%= lesson_text %></p>
+      <% if @eligibility.eligible? %>
+        <p class="mt-2 mb-0">振替は後で選びます（<%= japanese_date(@expires_on) %>まで、予定一覧から選べます）。</p>
+      <% end %>
+    <% end %>
+  </div>
+</div>
+
+<% unless @eligibility.eligible? %>
+  <div class="alert alert-warning" role="status">
+    <%= no_credit_message(@eligibility.no_credit_reason, MakeupRule.current) %>
+    欠席の連絡だけを受け付けます。
+  </div>
+<% end %>
+
+<%= form_with url: student_absences_path(@student), method: :post, class: "d-flex gap-2" do |f| %>
+  <%= f.hidden_field :lesson_slot_id, value: lesson.id %>
+  <%= f.hidden_field :lesson_on, value: @absence.lesson_on %>
+  <%= f.hidden_field :makeup_slot_id, value: @makeup_slot.id if @makeup_slot %>
+  <%= f.submit "確定する", class: "btn btn-primary" %>
+  <%= link_to "戻る", back_path, class: "btn btn-outline-secondary" %>
+<% end %>
