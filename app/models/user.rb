@@ -5,6 +5,8 @@ class User < ApplicationRecord
 
   # 保護者に属する生徒。生徒がいる間は、保護者を削除できない
   has_many :students, foreign_key: :guardian_id, inverse_of: :guardian, dependent: :restrict_with_error
+  # 欠席を連絡した人。履歴なので、連絡した欠席がある間は削除できない
+  has_many :reported_absences, class_name: "Absence", foreign_key: :reported_by_id, inverse_of: :reported_by, dependent: :restrict_with_error
 
   enum :role, { guardian: 0, teacher: 1 }, default: :guardian
 

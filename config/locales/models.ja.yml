@@ -22,6 +22,8 @@ ja:
       lesson_slot: 固定枠
       makeup_slot: 振替枠
       makeup_rule: 振替ルール
+      absence: 欠席
+      makeup_credit: 振替権
     attributes:
       student:
         name: 名前
@@ -42,6 +44,15 @@ ja:
         valid_days: 振替の期限
         absence_deadline_hours: 欠席連絡の締切
         reservation_deadline_days: 振替予約の締切
+      absence:
+        lesson_slot: 固定枠
+        lesson_on: 欠席するレッスンの日
+        reported_by: 連絡した人
+        no_credit_reason: 振替権が付かない理由
+      makeup_credit:
+        student: 生徒
+        absence: 欠席
+        expires_on: 振替の期限
       user:
         email: メールアドレス
         name: 名前

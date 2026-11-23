@@ -4,6 +4,9 @@
 class LessonSlot < ApplicationRecord
   belongs_to :student
 
+  # 欠席の履歴が指すので、欠席がある固定枠は削除できない
+  has_many :absences, dependent: :restrict_with_error
+
   validates :wday, presence: true, inclusion: { in: 0..6, allow_nil: true, message: "は日曜日〜土曜日のいずれかを選んでください" }
   validates :start_time, :end_time, :starts_on, presence: true
   validate :end_time_after_start_time
