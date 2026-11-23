@@ -23,6 +23,34 @@ RSpec.describe "生徒の一覧・登録・編集（T-02・T-03）", type: :requ
         expect(rows).to eq [ %w[たろう 山田花子], %w[はなこ 山田花子], %w[ゆうき 鈴木一郎] ]
       end
 
+      it "生徒ごとに、今月の振替の利用回数（その月に振替権が付いた欠席の数）と上限を表示する" do
+        travel_to Time.zone.local(2026, 11, 2, 9, 0)
+        used = create(:student, name: "たろう")
+        create(:student, name: "はなこ")
+        slot = create(:lesson_slot, student: used, wday: 3, start_time: "16:00", end_time: "16:30")
+        create(:absence, lesson_slot: slot, lesson_on: Date.new(2026, 11, 4), reported_by: used.guardian)
+        create(:absence, :after_deadline, lesson_slot: slot, lesson_on: Date.new(2026, 11, 11), reported_by: used.guardian) # 数えない
+        create(:absence, lesson_slot: slot, lesson_on: Date.new(2026, 12, 2), reported_by: used.guardian) # 来月（数えない）
+
+        get teacher_students_path
+
+        page = Nokogiri::HTML5.parse(response.body)
+        expect(page.css("thead th").map { |th| th.text.strip }).to include "今月の振替の利用回数"
+        expect(page.css("tbody tr").map { |tr| tr.css("td")[0, 3].map { |td| td.text.squish } }).to eq [
+          [ "たろう", "保護者", "1回 （上限 2回）" ], [ "はなこ", "保護者", "0回 （上限 2回）" ]
+        ]
+      end
+
+      it "月の上限は、先生が設定した値を表示する" do
+        MakeupRule.current.update!(monthly_limit: 4)
+        create(:student)
+
+        get teacher_students_path
+
+        expect(response.body).to include "0回"
+        expect(response.body).to include "上限 4回"
+      end
+
       it "生徒の追加・編集へのリンクを表示する" do
         student = create(:student)
 

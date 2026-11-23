@@ -4,6 +4,9 @@ module Teacher
     def index
       authorize Student
       @students = policy_scope(Student).includes(:guardian).order(:id)
+      # 今月（日本時間）の振替の利用回数（その月に振替権が付いた欠席の数）と、月の上限
+      @usage_counts = Student.credited_absence_counts_in_month(Date.current)
+      @monthly_limit = MakeupRule.current.monthly_limit
     end
 
     def new

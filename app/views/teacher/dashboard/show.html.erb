@@ -1,3 +1,58 @@
+<%# T-01 ダッシュボード。今週（月曜日〜日曜日）の欠席と振替予約を、日付順に表示する。締切後の欠席は「当日欠席」と区別する %>
 <% content_for :title, "ダッシュボード | ふりかえ帳" %>
 <h1 class="h4">ダッシュボード</h1>
 <p><%= current_user.name %>先生、こんにちは。</p>
+
+<h2 class="h5 mt-4">今週の欠席・振替</h2>
+<p class="text-body-secondary">
+  <%= japanese_date_with_wday(@week.begin) %>〜<%= japanese_date_with_wday(@week.end) %>
+</p>
+
+<% if @entries.empty? %>
+  <p class="text-body-secondary">今週の欠席・振替はありません。</p>
+<% else %>
+  <div class="table-responsive">
+    <table class="table align-middle">
+      <thead>
+        <tr>
+          <th scope="col">日時</th>
+          <th scope="col">生徒</th>
+          <th scope="col">保護者</th>
+          <th scope="col">内容</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @entries.each do |entry| %>
+          <tr>
+            <td>
+              <%= japanese_date_with_wday(entry.starts_at.to_date) %>
+              <%= entry.starts_at.strftime("%H:%M") %>〜<%= entry.ends_at.strftime("%H:%M") %>
+            </td>
+            <td><%= entry.student.name %></td>
+            <td><%= entry.guardian.name %></td>
+            <td>
+              <% if entry.makeup? %>
+                <span class="badge text-bg-primary">振替</span>
+                <span class="text-body-secondary">（<%= japanese_date_with_wday(entry.reservation.makeup_credit.absence.lesson_on) %>の欠席の分）</span>
+              <% elsif entry.same_day_absence? %>
+                <span class="badge text-bg-danger">当日欠席</span>
+                <span class="text-body-secondary">（振替権なし）</span>
+              <% elsif entry.over_limit_absence? %>
+                <span class="badge text-bg-secondary">欠席</span>
+                <span class="text-body-secondary">（月の上限を超えたため、振替権なし）</span>
+              <% else %>
+                <span class="badge text-bg-warning">欠席</span>
+                <% reservation = entry.makeup_reservation %>
+                <% if reservation %>
+                  <span class="text-body-secondary">（振替：<%= makeup_slot_text(reservation.makeup_slot) %>）</span>
+                <% else %>
+                  <span class="text-body-secondary">（振替は未選択）</span>
+                <% end %>
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% end %>
