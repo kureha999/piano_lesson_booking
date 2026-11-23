@@ -27,10 +27,10 @@ class MakeupReservationsController < ApplicationController
   # P-03 の「確定する」
   def create
     result = ReserveMakeupSlot.call(makeup_credit: @credit, makeup_slot: @makeup_slot)
-    return redirect_to student_makeup_credit_makeup_reservation_path(@student, @credit, result.reservation) if result.success?
-    return redirect_to schedule_path, alert: "この振替権は、すでに予約に使われています。" if result.reason == :credit_used
+    return redirect_after_failure(result.reason) unless result.success?
 
-    redirect_to new_student_makeup_credit_makeup_reservation_path(@student, @credit), alert: slot_alert(result.reason)
+    MakeupNotifications.makeup_confirmed(result.reservation) # 確定した後に、先生と保護者へメールを送る
+    redirect_to student_makeup_credit_makeup_reservation_path(@student, @credit, result.reservation)
   end
 
   # P-04 完了
@@ -39,6 +39,12 @@ class MakeupReservationsController < ApplicationController
   end
 
   private
+
+  def redirect_after_failure(reason)
+    return redirect_to schedule_path, alert: "この振替権は、すでに予約に使われています。" if reason == :credit_used
+
+    redirect_to new_student_makeup_credit_makeup_reservation_path(@student, @credit), alert: slot_alert(reason)
+  end
 
   # 自分の子どもだけ。ほかの家庭の子どもは RecordNotFound（E-01：404）になる
   def set_student

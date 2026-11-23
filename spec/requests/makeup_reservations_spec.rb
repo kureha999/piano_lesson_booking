@@ -1,6 +1,8 @@
 require "rails_helper"
 
 RSpec.describe "未使用の振替権から振替を予約する（P-02〜P-04）", type: :request do
+  include ActiveJob::TestHelper
+
   # 2026年11月2日（月）の朝。11/11（水）の欠席の分の振替権があり、期限は 12/11
   let(:now) { Time.zone.local(2026, 11, 2, 9, 0) }
   let(:guardian) { create(:guardian) }
@@ -172,6 +174,22 @@ RSpec.describe "未使用の振替権から振替を予約する（P-02〜P-04�
       end
     end
 
+    describe "メール通知（F-12）" do
+      before { create(:teacher) }
+
+      it "予約すると、先生と保護者の両方に、振替確定のメールを送る" do
+        expect { post student_makeup_credit_makeup_reservations_path(student, credit), params: { makeup_slot_id: makeup_slot.id } }
+          .to have_enqueued_mail(MakeupMailer, :makeup_confirmed).twice
+      end
+
+      it "予約に失敗したとき（枠が先に埋まった）は、メールを送らない" do
+        create(:makeup_reservation, makeup_slot: makeup_slot, makeup_credit: create_credit_for(create(:student), Date.new(2026, 11, 9)))
+
+        expect { post student_makeup_credit_makeup_reservations_path(student, credit), params: { makeup_slot_id: makeup_slot.id } }
+          .not_to have_enqueued_mail(MakeupMailer, :makeup_confirmed)
+      end
+    end
+
     describe "P-04 完了" do
       it "予約した振替枠と、どの欠席の分かを表示する" do
         post student_makeup_credit_makeup_reservations_path(student, credit), params: { makeup_slot_id: makeup_slot.id }
@@ -181,6 +199,13 @@ RSpec.describe "未使用の振替権から振替を予約する（P-02〜P-04�
         expect(page.at_css("h1").text).to eq "振替を予約しました"
         expect(page.at_css(".card").text.squish).to include "ひなたさん", "11月16日（月） 10:00〜10:30 に、振替を予約しました。", "11月11日（水）の欠席の分です。"
         expect(page.css("main a.btn").map { |link| [ link.text, link["href"] ] }).to eq [ [ "予定一覧を見る", schedule_path ], [ "ホームに戻る", root_path ] ]
+      end
+
+      it "確認のメールを送ったことを表示する" do
+        post student_makeup_credit_makeup_reservations_path(student, credit), params: { makeup_slot_id: makeup_slot.id }
+        follow_redirect!
+
+        expect(page.at_css("main").text.squish).to include "確認のメールを、先生とご登録のメールアドレスにお送りしました。"
       end
 
       it "ほかの振替権の予約は開けない（404）" do

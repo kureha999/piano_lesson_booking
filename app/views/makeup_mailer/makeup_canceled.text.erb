@@ -1,0 +1,14 @@
+<%= render "greeting" %>
+【振替予約をキャンセルしました】
+キャンセルした振替：<%= makeup_slot_text(@reservation.makeup_slot) %>
+欠席したレッスン：<%= japanese_date_with_wday(@absence.lesson_on) %> <%= @absence.lesson_slot.time_range %>
+
+<% if @recipient.teacher? %>
+この枠の予約に、空きができました。
+<% else %>
+振替権は、また使えます（<%= japanese_date(@credit.expires_on) %>まで）。予定一覧から、別の日を選び直せます。
+
+予定一覧：<%= schedule_url %>
+<% end %>
+
+ふりかえ帳：<%= root_url %>

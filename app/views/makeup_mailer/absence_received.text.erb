@@ -1,0 +1,20 @@
+<%= render "greeting" %>
+【欠席を受け付けました】
+欠席するレッスン：<%= japanese_date_with_wday(@absence.lesson_on) %> <%= @absence.lesson_slot.time_range %>
+連絡した日時：<%= l(@absence.created_at.in_time_zone, format: "%-m月%-d日 %H:%M") %>
+
+<% if @reservation %>
+【振替が確定しました】
+振替：<%= makeup_slot_text(@reservation.makeup_slot) %>
+<% elsif @credit %>
+【振替権が付きました】
+振替の日は、まだ選んでいません。<%= japanese_date(@credit.expires_on) %>までに、予定一覧から選べます。
+<% unless @recipient.teacher? %>
+予定一覧：<%= schedule_url %>
+<% end %>
+<% else %>
+【振替権は付きません】
+<%= no_credit_message(@absence.no_credit_reason, @rule) %>
+<% end %>
+
+ふりかえ帳：<%= root_url %>

@@ -10,6 +10,7 @@ class MakeupReservationCancellationsController < ApplicationController
 
     result = CancelMakeupReservation.call(reservation)
     if result.success?
+      MakeupNotifications.makeup_canceled(reservation) # キャンセルした後に、先生と保護者へメールを送る
       redirect_to schedule_path, notice: "#{helpers.makeup_slot_text(reservation.makeup_slot)}の振替予約をキャンセルしました。振替権は、また使えます。"
     else
       redirect_to schedule_path, alert: failure_message(result.reason, reservation)

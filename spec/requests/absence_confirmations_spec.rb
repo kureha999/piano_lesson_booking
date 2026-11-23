@@ -1,6 +1,8 @@
 require "rails_helper"
 
 RSpec.describe "欠席の確認・確定（P-03・P-04）", type: :request do
+  include ActiveJob::TestHelper
+
   # 2026年11月2日（月）の朝。欠席するのは、水曜日 16:00〜16:30 のレッスン（11/11）。振替の期限は 12/11
   let(:now) { Time.zone.local(2026, 11, 2, 9, 0) }
   let(:guardian) { create(:guardian) }
@@ -170,6 +172,39 @@ RSpec.describe "欠席の確認・確定（P-03・P-04）", type: :request do
       end
     end
 
+    describe "メール通知（F-12）" do
+      before { create(:teacher) }
+
+      it "確定すると、先生と保護者の両方に、欠席受付のメールを送る" do
+        expect { post student_absences_path(student), params: lesson_params.merge(makeup_slot_id: makeup_slot.id) }
+          .to have_enqueued_mail(MakeupMailer, :absence_received).twice
+      end
+
+      it "実際に配信すると、先生と保護者のメールアドレスに届く（振替の確定も同じメールで伝える）" do
+        perform_enqueued_jobs { post student_absences_path(student), params: lesson_params.merge(makeup_slot_id: makeup_slot.id) }
+
+        mails = ActionMailer::Base.deliveries
+        expect(mails.flat_map(&:to)).to contain_exactly(User.teacher.first.email, guardian.email)
+        expect(mails.map(&:subject).uniq).to eq [ "【ふりかえ帳】ひなたさんの欠席を受け付けました（11月11日（水））" ]
+        expect(mails.map { |mail| mail.body.to_s }).to all(include("振替：11月16日（月） 10:00〜10:30"))
+      end
+
+      it "振替を後で選ぶときも、欠席受付のメールを送る" do
+        expect { post student_absences_path(student), params: lesson_params }.to have_enqueued_mail(MakeupMailer, :absence_received).twice
+      end
+
+      it "確定に失敗したとき（枠が先に埋まった）は、メールを送らない" do
+        create(:makeup_reservation, makeup_slot: makeup_slot, makeup_credit: create_credit_for(create(:student), Date.new(2026, 11, 9)))
+
+        expect { post student_absences_path(student), params: lesson_params.merge(makeup_slot_id: makeup_slot.id) }
+          .not_to have_enqueued_mail(MakeupMailer, :absence_received)
+      end
+
+      it "確認（P-03）を開いただけでは、メールを送らない" do
+        expect { get confirm_student_absences_path(student), params: lesson_params }.not_to have_enqueued_mail
+      end
+    end
+
     describe "P-04 完了" do
       def complete(**params)
         post student_absences_path(student), params: lesson_params.merge(params)
@@ -196,6 +231,12 @@ RSpec.describe "欠席の確認・確定（P-03・P-04）", type: :request do
         complete
 
         expect(page.at_css(".card").text.squish).to include "欠席連絡の締切（レッスン開始の2時間前）を過ぎたため、振替権は付きません。"
+      end
+
+      it "確認のメールを送ったことを表示する" do
+        complete
+
+        expect(page.at_css("main").text.squish).to include "確認のメールを、先生とご登録のメールアドレスにお送りしました。"
       end
 
       it "「ホームに戻る」で P-01 に戻る" do

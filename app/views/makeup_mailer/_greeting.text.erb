@@ -1,0 +1,7 @@
+<%= @recipient.name %>さん
+
+<% if @recipient.teacher? %>
+<%= @guardian.name %>さん（保護者）の<%= @student.name %>さんについて、お知らせします。
+<% else %>
+<%= @student.name %>さんについて、お知らせします。
+<% end %>
