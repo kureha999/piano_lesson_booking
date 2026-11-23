@@ -77,30 +77,4 @@ RSpec.describe Student, type: :model do
       expect { student.save!(validate: false) }.to raise_error(ActiveRecord::NotNullViolation)
     end
   end
-
-  describe "#credited_absence_count_in_month" do
-    let(:student) { create(:student) }
-    let(:slot) { create(:lesson_slot, student: student) } # 水曜日
-
-    it "指定した日が属する月に、振替権が付いた欠席の数を返す" do
-      create(:absence, lesson_slot: slot, lesson_on: Date.new(2099, 1, 7))
-      create(:absence, lesson_slot: slot, lesson_on: Date.new(2099, 1, 14))
-
-      expect(student.credited_absence_count_in_month(Date.new(2099, 1, 31))).to eq 2
-    end
-
-    it "振替権が付かなかった欠席と、別の月の欠席は数えない" do
-      create(:absence, :after_deadline, lesson_slot: slot, lesson_on: Date.new(2099, 1, 7))
-      create(:absence, lesson_slot: slot, lesson_on: Date.new(2099, 2, 4))
-
-      expect(student.credited_absence_count_in_month(Date.new(2099, 1, 1))).to eq 0
-      expect(student.credited_absence_count_in_month(Date.new(2099, 2, 28))).to eq 1
-    end
-
-    it "ほかの生徒の欠席は数えない" do
-      create(:absence)
-
-      expect(student.credited_absence_count_in_month(Date.new(2099, 1, 7))).to eq 0
-    end
-  end
 end

@@ -3,6 +3,7 @@
 # 欠席する流れ（AbsencesController）と違い、欠席はすでに登録ずみで、振替予約だけを作る。
 class MakeupReservationsController < ApplicationController
   include MakeupSlotAlerts
+  include OwnStudent
 
   before_action { authorize :makeup_reservation } # 保護者だけ（先生は、ホームに戻される）
   before_action :set_student
@@ -44,11 +45,6 @@ class MakeupReservationsController < ApplicationController
     return redirect_to schedule_path, alert: "この振替権は、すでに予約に使われています。" if reason == :credit_used
 
     redirect_to new_student_makeup_credit_makeup_reservation_path(@student, @credit), alert: slot_alert(reason)
-  end
-
-  # 自分の子どもだけ。ほかの家庭の子どもは RecordNotFound（E-01：404）になる
-  def set_student
-    @student = policy_scope(Student).find(params[:student_id])
   end
 
   def set_credit

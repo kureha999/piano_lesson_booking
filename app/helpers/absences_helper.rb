@@ -26,4 +26,12 @@ module AbsencesHelper
   def makeup_slot_text(slot)
     "#{japanese_date_with_wday(slot.starts_at.to_date)} #{slot.starts_at.strftime('%H:%M')}〜#{slot.ends_at.strftime('%H:%M')}"
   end
+
+  # P-05 で振替予約をキャンセルできなかったときのメッセージ。reason は CancelMakeupReservation の失敗の理由
+  def cancellation_failure_message(reason, reservation)
+    return "この振替予約は、すでにキャンセルされています。" if reason == :already_canceled
+
+    deadline = reservation.makeup_slot.reservation_deadline
+    "キャンセルの締切（#{deadline.strftime('%-m月%-d日 %H:%M')}）を過ぎているため、キャンセルできません。先生にご連絡ください。"
+  end
 end

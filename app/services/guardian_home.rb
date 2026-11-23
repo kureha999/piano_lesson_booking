@@ -25,7 +25,7 @@ class GuardianHome
   def summaries
     students = @students.includes(:lesson_slots).order(:id).to_a
     ids = students.map(&:id)
-    credited_counts = Student.credited_absence_counts_in_month(today, student_ids: ids)
+    credited_counts = MonthlyCreditUsage.counts(today, student_ids: ids)
     absent_keys = absent_keys_by_student(ids)
     unused_credits = unused_credits_by_student(ids)
 

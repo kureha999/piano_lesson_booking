@@ -22,7 +22,7 @@ class MakeupCreditEligibility
 
   def no_credit_reason
     return :after_deadline if @now > @absence.lesson_starts_at - @rule.absence_deadline_hours.hours
-    return :over_monthly_limit if student.credited_absence_count_in_month(@absence.lesson_on) >= @rule.monthly_limit
+    return :over_monthly_limit if MonthlyCreditUsage.count(student, @absence.lesson_on) >= @rule.monthly_limit
 
     nil
   end
