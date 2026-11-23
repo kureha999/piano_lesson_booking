@@ -58,16 +58,9 @@ class RegisterAbsence
   # 振替権が付かない理由。付くときは nil
   def no_credit_reason(absence, rule)
     return :after_deadline if Time.current > absence.lesson_starts_at - rule.absence_deadline_hours.hours
-    return :over_monthly_limit if credited_count_in_month(absence.lesson_on) >= rule.monthly_limit
+    return :over_monthly_limit if student.credited_absence_count_in_month(absence.lesson_on) >= rule.monthly_limit
 
     nil
-  end
-
-  # 欠席日が属する月に、その生徒に振替権が付いた欠席の数
-  def credited_count_in_month(lesson_on)
-    Absence.joins(:lesson_slot)
-      .where(lesson_slots: { student_id: student.id }, no_credit_reason: nil, lesson_on: lesson_on.all_month)
-      .count
   end
 
   def grant_credit(absence, rule)

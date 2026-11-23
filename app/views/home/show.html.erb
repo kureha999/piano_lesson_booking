@@ -1,3 +1,61 @@
+<%# P-01 ホーム（保護者）。子ども（兄弟を含む）ごとに、今後2週間のレッスン・今月の振替の残り回数・未使用の振替権を表示する %>
 <% content_for :title, "ホーム | ふりかえ帳" %>
-<h1 class="h4">ホーム</h1>
+<h1 class="h4 mb-3">ホーム</h1>
 <p><%= current_user.name %>さん、こんにちは。</p>
+
+<% if @summaries.empty? %>
+  <p class="text-body-secondary">お子さんがまだ登録されていません。先生にお問い合わせください。</p>
+<% end %>
+
+<% @summaries.each do |summary| %>
+  <% student = summary.student %>
+  <section class="card mb-4" aria-labelledby="student-<%= student.id %>">
+    <div class="card-body">
+      <h2 class="h5 card-title" id="student-<%= student.id %>"><%= student.name %>さん</h2>
+
+      <p class="mb-3">
+        今月の振替の残り：<strong class="fs-5"><%= summary.remaining_count %>回</strong>
+        <span class="text-body-secondary">（月の上限 <%= summary.monthly_limit %>回）</span>
+      </p>
+
+      <h3 class="h6">今後2週間のレッスン</h3>
+      <% if summary.lesson_items.empty? %>
+        <p class="text-body-secondary">今後2週間のレッスンはありません。</p>
+      <% else %>
+        <ul class="list-group mb-3">
+          <% summary.lesson_items.each do |item| %>
+            <% lesson = item.lesson %>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <span>
+                <%= japanese_date_with_wday(lesson.date) %>
+                <%= lesson.starts_at.strftime("%H:%M") %>〜<%= lesson.ends_at.strftime("%H:%M") %>
+              </span>
+              <% if item.absent %>
+                <span class="badge text-bg-secondary">欠席連絡ずみ</span>
+              <% else %>
+                <%= link_to "欠席する",
+                      new_student_absence_path(student, lesson_slot_id: lesson.lesson_slot.id, lesson_on: lesson.date),
+                      class: "btn btn-outline-danger btn-sm",
+                      aria: { label: "#{student.name}さんの#{japanese_date_with_wday(lesson.date)}のレッスンを欠席する" } %>
+              <% end %>
+            </li>
+          <% end %>
+        </ul>
+      <% end %>
+
+      <h3 class="h6">未使用の振替権</h3>
+      <% if summary.unused_credits.empty? %>
+        <p class="text-body-secondary mb-0">未使用の振替権はありません。</p>
+      <% else %>
+        <ul class="list-group">
+          <% summary.unused_credits.each do |credit| %>
+            <li class="list-group-item">
+              <%= japanese_date(credit.absence.lesson_on) %>の欠席の分
+              <span class="text-body-secondary">（<%= japanese_date(credit.expires_on) %>まで）</span>
+            </li>
+          <% end %>
+        </ul>
+      <% end %>
+    </div>
+  </section>
+<% end %>
