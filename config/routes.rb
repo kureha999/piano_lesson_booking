@@ -16,8 +16,8 @@ Rails.application.routes.draw do
 
   # 保護者の画面。欠席する（P-01 → P-02 振替枠の選択 → P-03 確認 → P-04 完了）。子どもの ID は、自分の子どもに絞って探す
   resources :students, only: [] do
-    resources :absences, only: %i[new] do
-      get :confirm, on: :collection # P-03 確認（#47）
+    resources :absences, only: %i[new create show] do # new：P-02、create：P-03 の「確定する」、show：P-04 完了
+      get :confirm, on: :collection # P-03 確認
     end
   end
 

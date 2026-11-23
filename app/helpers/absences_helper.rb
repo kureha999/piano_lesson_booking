@@ -12,6 +12,16 @@ module AbsencesHelper
     end
   end
 
+  # 振替権が付かない理由（P-03・P-04）。reason は Absence の no_credit_reason / MakeupCreditEligibility#no_credit_reason の値
+  def no_credit_message(reason, rule)
+    case reason.to_s
+    when "after_deadline"
+      "欠席連絡の締切（レッスン開始の#{rule.absence_deadline_hours}時間前）を過ぎたため、振替権は付きません。"
+    when "over_monthly_limit"
+      "今月の振替の上限（#{rule.monthly_limit}回）に達しているため、振替権は付きません。"
+    end
+  end
+
   # 「6月13日（土） 15:00〜15:30」
   def makeup_slot_text(slot)
     "#{japanese_date_with_wday(slot.starts_at.to_date)} #{slot.starts_at.strftime('%H:%M')}〜#{slot.ends_at.strftime('%H:%M')}"

@@ -1,0 +1,27 @@
+<%# P-04 完了。欠席受付と振替確定の結果を表示する %>
+<% content_for :title, "完了 | ふりかえ帳" %>
+<% lesson = @absence.lesson_slot %>
+
+<h1 class="h4 mb-3">欠席を受け付けました</h1>
+
+<div class="card mb-3">
+  <div class="card-body">
+    <p class="mb-2"><strong><%= @student.name %>さん</strong></p>
+    <p class="mb-2">
+      <%= japanese_date_with_wday(@absence.lesson_on) %> <%= lesson.time_range %> のレッスンの欠席を受け付けました。
+    </p>
+    <% if @reservation %>
+      <p class="mb-0 fs-5">
+        <%= makeup_slot_text(@reservation.makeup_slot) %> に、振替を予約しました。
+      </p>
+    <% elsif @makeup_credit %>
+      <p class="mb-0">
+        振替は、まだ選んでいません。<%= japanese_date(@makeup_credit.expires_on) %>までに、予定一覧から選べます。
+      </p>
+    <% else %>
+      <p class="mb-0"><%= no_credit_message(@absence.no_credit_reason, @rule) %></p>
+    <% end %>
+  </div>
+</div>
+
+<%= link_to "ホームに戻る", root_path, class: "btn btn-primary" %>
