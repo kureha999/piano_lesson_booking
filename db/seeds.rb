@@ -1,9 +1,13 @@
-# This file should ensure the existence of records required to run the application in every environment (production,
-# development, test). The code here should be idempotent so that it can be executed at any point in every environment.
-# The data can then be loaded with the bin/rails db:seed command (or created alongside the database with db:setup).
-#
-# Example:
-#
-#   ["Action", "Comedy", "Drama", "Horror"].each do |genre_name|
-#     MovieGenre.find_or_create_by!(name: genre_name)
-#   end
+# bin/rails db:seed：動作確認とデモ動画のための、架空の教室のデータを作る（lib/demo_data.rb）。
+# 実行のたびに、ふりかえ帳のデータをすべて消して、作り直す。デモ用ではないユーザーがいる DB・本番環境では、何も作らずに止まる。
+begin
+  result = DemoData.load
+rescue DemoData::Refused => e
+  abort "デモデータを作りませんでした：#{e.message}"
+end
+
+puts "デモデータを作りました（すべて架空のデータです）。"
+puts "  先生　：#{result[:teacher]}"
+puts "  保護者：#{result[:guardians].join('、')}"
+puts "  パスワード（共通）：#{result[:password]}"
+puts "  生徒 #{result[:students]}人、固定枠 #{result[:lesson_slots]}、振替枠 #{result[:makeup_slots]}、欠席 #{result[:absences]}、振替権 #{result[:credits]}、振替予約 #{result[:reservations]}"
