@@ -14,37 +14,8 @@
   振替は、<%= japanese_date(period.begin) %>から<%= japanese_date(period.end) %>までに受講できる枠から選べます。
 </p>
 
-<% if @slots.empty? %>
-  <div class="alert alert-warning" role="status">
-    <p class="fw-bold mb-1">いま選べる振替枠がありません。</p>
-    <% if @reason_counts.empty? %>
-      <p class="mb-0">先生が登録した振替枠が、まだありません。</p>
-    <% else %>
-      <ul class="mb-0">
-        <% @reason_counts.each_key do |reason| %>
-          <% message = makeup_unavailable_message(reason, period) %>
-          <%= tag.li(message) if message %>
-        <% end %>
-      </ul>
-    <% end %>
-  </div>
-  <p class="text-body-secondary">振替は後から、予定一覧で選べます（期限は <%= japanese_date(@expires_on) %> までです）。</p>
-<% else %>
-  <ul class="list-group mb-4">
-    <% @slots.each do |slot| %>
-      <li class="list-group-item d-flex justify-content-between align-items-center">
-        <span>
-          <%= makeup_slot_text(slot) %>
-          <span class="text-body-secondary">（残り<%= slot.capacity - slot.reserved_count %>名）</span>
-        </span>
-        <%= button_to "この枠にする", confirm_path, method: :get,
-              params: lesson_params.merge(makeup_slot_id: slot.id), class: "btn btn-primary btn-sm",
-              form: { class: "d-inline" },
-              aria: { label: "#{makeup_slot_text(slot)}の枠にする" } %>
-      </li>
-    <% end %>
-  </ul>
-<% end %>
+<%= render "shared/makeup_slot_choices", slots: @slots, reason_counts: @reason_counts, period: period, expires_on: @expires_on,
+      confirm_path: confirm_path, confirm_params: lesson_params, later_message: "振替は後から、予定一覧で選べます。" %>
 
 <div class="d-flex gap-2">
   <%= button_to "振替は後で選ぶ", confirm_path, method: :get, params: lesson_params, class: "btn btn-outline-secondary" %>

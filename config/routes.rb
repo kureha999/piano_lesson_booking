@@ -19,7 +19,17 @@ Rails.application.routes.draw do
     resources :absences, only: %i[new create show] do # new：P-02、create：P-03 の「確定する」、show：P-04 完了
       get :confirm, on: :collection # P-03 確認
     end
+
+    # 未使用の振替権から、振替を予約する（P-05 の「振替を選ぶ」→ P-02 → P-03 → P-04）
+    resources :makeup_credits, only: [] do
+      resources :makeup_reservations, only: %i[new create show] do
+        get :confirm, on: :collection
+      end
+    end
   end
+
+  # P-05 予定一覧（保護者）
+  resource :schedule, only: :show
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
   # Can be used by load balancers and uptime monitors to verify that the app is live.

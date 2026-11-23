@@ -1,0 +1,15 @@
+<%# P-02 振替枠の選択（未使用の振替権から）。ルールの範囲内で予約できる枠だけを、日付順に表示する %>
+<% content_for :title, "振替枠の選択 | ふりかえ帳" %>
+<% absence = @credit.absence %>
+
+<h1 class="h4 mb-3">振替の日を選ぶ</h1>
+<p>
+  <strong><%= @student.name %>さん</strong>の <strong><%= japanese_date_with_wday(absence.lesson_on) %></strong> の欠席の分です。<br>
+  振替は、<%= japanese_date(@period.begin) %>から<%= japanese_date(@period.end) %>までに受講できる枠から選べます。
+</p>
+
+<%= render "shared/makeup_slot_choices", slots: @slots, reason_counts: @reason_counts, period: @period, expires_on: @credit.expires_on,
+      confirm_path: confirm_student_makeup_credit_makeup_reservations_path(@student, @credit), confirm_params: {},
+      later_message: "枠が追加されたら、予定一覧からまた選べます。" %>
+
+<%= link_to "予定一覧に戻る", schedule_path, class: "btn btn-outline-secondary" %>

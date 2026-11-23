@@ -5,6 +5,8 @@
 #   P-04 完了（show）
 # P-02 と P-03 では、まだ欠席を登録しない。どのレッスンか・どの枠を選んだかは、URL のパラメーターで渡す。
 class AbsencesController < ApplicationController
+  include MakeupSlotAlerts
+
   before_action { authorize :absence } # 保護者だけ（先生は、ホームに戻される）
   before_action :set_student
   before_action :set_lesson, only: %i[new confirm create]
@@ -94,13 +96,6 @@ class AbsencesController < ApplicationController
 
   def no_credit_alert
     "振替権が付かなくなったため、振替枠は選べません。欠席だけを連絡する場合は、このまま確定してください。"
-  end
-
-  # 選んだ枠を予約できなかったときのメッセージ。先に予約されて埋まった場合は、その旨を伝える
-  def slot_alert(reason)
-    return "選んだ枠は予約が埋まりました。ほかの枠を選んでください。" if reason == :full
-
-    "選んだ枠は予約できなくなりました。ほかの枠を選んでください。"
   end
 
   def parse_date(value)

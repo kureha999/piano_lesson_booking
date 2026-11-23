@@ -1,0 +1,21 @@
+<%# P-04 完了（未使用の振替権から）。振替を予約した結果を表示する %>
+<% content_for :title, "完了 | ふりかえ帳" %>
+
+<h1 class="h4 mb-3">振替を予約しました</h1>
+
+<div class="card mb-3">
+  <div class="card-body">
+    <p class="mb-2"><strong><%= @student.name %>さん</strong></p>
+    <p class="mb-0 fs-5">
+      <%= makeup_slot_text(@reservation.makeup_slot) %> に、振替を予約しました。
+    </p>
+    <p class="text-body-secondary mt-2 mb-0">
+      <%= japanese_date_with_wday(@credit.absence.lesson_on) %>の欠席の分です。
+    </p>
+  </div>
+</div>
+
+<div class="d-flex gap-2">
+  <%= link_to "予定一覧を見る", schedule_path, class: "btn btn-primary" %>
+  <%= link_to "ホームに戻る", root_path, class: "btn btn-outline-secondary" %>
+</div>
