@@ -14,6 +14,11 @@ Rails.application.routes.draw do
     resources :lesson_slots, only: %i[index new create edit update] # T-04 固定枠の一覧、T-05 固定枠の登録・変更
   end
 
+  # 保護者の画面。欠席する（P-02 振替枠の選択へ進む入口）。子どもの ID は、自分の子どもに絞って探す
+  resources :students, only: [] do
+    resources :absences, only: %i[new]
+  end
+
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
   # Can be used by load balancers and uptime monitors to verify that the app is live.
   get "up" => "rails/health#show", as: :rails_health_check

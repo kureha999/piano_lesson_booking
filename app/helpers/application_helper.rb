@@ -14,6 +14,11 @@ module ApplicationHelper
     date.strftime("%Y年%-m月%-d日")
   end
 
+  # 「6月10日（水）」のように、月日と曜日を表示する
+  def japanese_date_with_wday(date)
+    "#{date.strftime('%-m月%-d日')}（#{I18n.t('date.abbr_day_names')[date.wday]}）"
+  end
+
   # 入力エラーを項目の下に表示する（エラーがなければ何も表示しない）
   # 使い方：<%= f.text_field :name %><%= field_error(@student, :name) %>
   def field_error(record, attribute)
