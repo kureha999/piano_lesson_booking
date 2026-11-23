@@ -177,7 +177,8 @@ RSpec.describe "未使用の振替権から振替を予約する（P-02〜P-04�
     describe "メール通知（F-12）" do
       before { create(:teacher) }
 
-      it "予約すると、先生と保護者の両方に、振替確定のメールを送る" do
+      # N+1 の検出は外す：メールのジョブは受信者ごとに別のジョブで動くので、まとめて読み込めない
+      it "予約すると、先生と保護者の両方に、振替確定のメールを送る", prosopite: false do
         expect { post student_makeup_credit_makeup_reservations_path(student, credit), params: { makeup_slot_id: makeup_slot.id } }
           .to have_enqueued_mail(MakeupMailer, :makeup_confirmed).twice
       end

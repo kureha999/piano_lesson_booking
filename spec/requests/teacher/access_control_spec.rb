@@ -40,6 +40,7 @@ RSpec.describe "先生の画面の権限（全ルート）", type: :request do
   # すべてのルートを順に開き、返ってきた状態（リダイレクト先か 404）を [ メソッド パス 状態 ] で返す
   def request_all
     routes.map do |method, path, params|
+      new_scan("#{method.upcase} #{path}") # ルートごとに別の scan にする
       public_send(method, path, params: params)
       outcome = response.redirect? ? response.location.delete_prefix("http://www.example.com") : response.status
       "#{method.upcase} #{path} → #{outcome}"

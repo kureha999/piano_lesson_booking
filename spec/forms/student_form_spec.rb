@@ -112,7 +112,8 @@ RSpec.describe StudentForm do
       expect(form.errors.full_messages_for(:guardian_name)).to eq [ "保護者の名前を入力してください" ]
     end
 
-    it "メールアドレスが空・形式が正しくないと、保存しない" do
+    # N+1 の検出は外す：メールアドレスを変えて、同じ保存を繰り返す
+    it "メールアドレスが空・形式が正しくないと、保存しない", prosopite: false do
       [ "", "hanako", "hanako@" ].each do |invalid|
         form = described_class.new(**attributes, guardian_email: invalid)
 
@@ -145,7 +146,8 @@ RSpec.describe StudentForm do
   end
 
   describe "同時に同じメールアドレスで登録されたとき" do
-    it "作られた保護者を探し直して、その保護者に生徒を追加する" do
+    # N+1 の検出は外す：同時登録の競合を再現するため、同じ検索を繰り返す
+    it "作られた保護者を探し直して、その保護者に生徒を追加する", prosopite: false do
       form = described_class.new(**attributes)
       calls = 0
       # 検証は通ったが、保存する直前に、別の人が同じメールアドレスの保護者を作っていた状況をつくる

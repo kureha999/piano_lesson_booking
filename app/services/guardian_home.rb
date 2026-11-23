@@ -21,8 +21,15 @@ class GuardianHome
     @rule = MakeupRule.current
   end
 
+  # 子どもが何人いても、クエリの数が増えないように、欠席・振替権は、全員分をまとめて読み込む（N+1 を避ける）
   def summaries
-    @students.includes(:lesson_slots).order(:id).map { |student| summary_of(student) }
+    students = @students.includes(:lesson_slots).order(:id).to_a
+    ids = students.map(&:id)
+    credited_counts = Student.credited_absence_counts_in_month(today, student_ids: ids)
+    absent_keys = absent_keys_by_student(ids)
+    unused_credits = unused_credits_by_student(ids)
+
+    students.map { |student| summary_of(student, credited_counts.fetch(student.id, 0), absent_keys[student.id] || Set.new, unused_credits[student.id] || []) }
   end
 
   private
@@ -31,20 +38,30 @@ class GuardianHome
     @today ||= @now.in_time_zone.to_date
   end
 
-  def summary_of(student)
-    credited = student.credited_absence_count_in_month(today)
+  def summary_of(student, credited, absent_keys, unused_credits)
     Summary.new(
       student: student,
-      lesson_items: lesson_items_of(student),
+      lesson_items: lesson_items_of(student, absent_keys),
       remaining_count: [ @rule.monthly_limit - credited, 0 ].max,
       monthly_limit: @rule.monthly_limit,
-      unused_credits: student.makeup_credits.unused(@now).includes(:absence).order(:expires_on, :id).to_a
+      unused_credits: unused_credits
     )
   end
 
-  def lesson_items_of(student)
+  def lesson_items_of(student, absent_keys)
     lessons = LessonSchedule.for(student, today..(today + PERIOD_DAYS - 1)).lessons.select { |lesson| lesson.starts_at > @now }
-    absent_keys = student.absences.where(lesson_on: today..).pluck(:lesson_slot_id, :lesson_on).to_set
     lessons.map { |lesson| LessonItem.new(lesson: lesson, absent: absent_keys.include?(lesson.key)) }
+  end
+
+  # { 生徒の ID => 今日以降の欠席の (固定枠の ID, 日付) の Set }
+  def absent_keys_by_student(student_ids)
+    Absence.joins(:lesson_slot).where(lesson_slots: { student_id: student_ids }, lesson_on: today..)
+      .pluck("lesson_slots.student_id", :lesson_slot_id, :lesson_on)
+      .group_by(&:first).transform_values { |rows| rows.to_set { |_, slot_id, date| [ slot_id, date ] } }
+  end
+
+  # { 生徒の ID => 未使用の振替権（期限が近い順） }
+  def unused_credits_by_student(student_ids)
+    MakeupCredit.where(student_id: student_ids).unused(@now).includes(:absence).order(:expires_on, :id).group_by(&:student_id)
   end
 end

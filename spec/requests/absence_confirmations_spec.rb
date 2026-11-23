@@ -185,12 +185,14 @@ RSpec.describe "欠席の確認・確定（P-03・P-04）", type: :request do
     describe "メール通知（F-12）" do
       before { create(:teacher) }
 
-      it "確定すると、先生と保護者の両方に、欠席受付のメールを送る" do
+      # N+1 の検出は外す：メールのジョブは受信者ごとに別のジョブ（本番では別プロセス）で動くので、まとめて読み込めない
+      it "確定すると、先生と保護者の両方に、欠席受付のメールを送る", prosopite: false do
         expect { post student_absences_path(student), params: lesson_params.merge(makeup_slot_id: makeup_slot.id) }
           .to have_enqueued_mail(MakeupMailer, :absence_received).twice
       end
 
-      it "実際に配信すると、先生と保護者のメールアドレスに届く（振替の確定も同じメールで伝える）" do
+      # N+1 の検出は外す：同上
+      it "実際に配信すると、先生と保護者のメールアドレスに届く（振替の確定も同じメールで伝える）", prosopite: false do
         perform_enqueued_jobs { post student_absences_path(student), params: lesson_params.merge(makeup_slot_id: makeup_slot.id) }
 
         mails = ActionMailer::Base.deliveries
@@ -199,7 +201,8 @@ RSpec.describe "欠席の確認・確定（P-03・P-04）", type: :request do
         expect(mails.map { |mail| mail.body.to_s }).to all(include("振替：11月16日（月） 10:00〜10:30"))
       end
 
-      it "振替を後で選ぶときも、欠席受付のメールを送る" do
+      # N+1 の検出は外す：同上
+      it "振替を後で選ぶときも、欠席受付のメールを送る", prosopite: false do
         expect { post student_absences_path(student), params: lesson_params }.to have_enqueued_mail(MakeupMailer, :absence_received).twice
       end
 

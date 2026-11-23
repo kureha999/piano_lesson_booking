@@ -126,7 +126,8 @@ reservation  }
         expect(reservation.reload.canceled_at).to eq first_canceled_at
       end
 
-      it "キャンセルすると、先生と保護者の両方に、キャンセルのメールを送る" do
+      # N+1 の検出は外す：メールのジョブは受信者ごとに別のジョブで動くので、まとめて読み込めない
+      it "キャンセルすると、先生と保護者の両方に、キャンセルのメールを送る", prosopite: false do
         create(:teacher)
 
         expect { post cancel_path }.to have_enqueued_mail(MakeupMailer, :makeup_canceled).twice

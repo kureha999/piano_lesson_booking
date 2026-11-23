@@ -3,7 +3,7 @@ module Teacher
   class MakeupSlotsController < ApplicationController
     def index
       authorize MakeupSlot
-      @makeup_slots = policy_scope(MakeupSlot).upcoming
+      @makeup_slots = policy_scope(MakeupSlot).upcoming.includes(:makeup_reservations) # 予約数を、枠ごとの SQL なしで数える
     end
 
     def new

@@ -969,6 +969,13 @@ bin/rspec spec/system             # ブラウザ（headless Chrome）での操�
 - system spec（`spec/system/`）は、画面遷移図②③の主要な流れを、Chrome で通しで確認します。Chrome が入っていれば動きます（ChromeDriver は不要）。
 - ドライバーは Cuprite（MIT）です。Selenium は、クリックがページに届かず不安定になったため使いません。失敗したときのスクリーンショットは `tmp/capybara/` に保存されます（CI では artifact にも保存）。
 
+**N+1 クエリの検出（Prosopite）**
+
+- 開発環境：画面の左下に N+1 のフッターが出ます（Rails のログにも出ます）。出たら、`includes` などで読み込みをまとめます。
+- テスト：N+1 を検出すると、その example が失敗します（`spec/support/prosopite.rb`）。FactoryBot の準備は対象外です。
+- どうしても外す example には `prosopite: false` を付け、理由をコメントに書きます。1 つの example で複数の画面を続けて開くときは、`new_scan("GET /path")` で画面ごとに別の scan にします。
+- 本番には入りません（gem は development・test のグループだけ）。ツールは Bullet と比べ、実際に重複した SQL を検出して誤検出が少ない Prosopite を選びました（PostgreSQL では `pg_query` を併用）。
+
 テストの共通処理（ヘルパーや設定）は `spec/support/` に置きます。`spec/rails_helper.rb` が自動で読み込みます。
 
 **カバレッジの見方**

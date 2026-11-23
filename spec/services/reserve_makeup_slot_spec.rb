@@ -110,7 +110,8 @@ RSpec.describe ReserveMakeupSlot do
         User.delete_all
       end
 
-      it "定員1の枠に4人が同時に予約しても、予約できるのは1人だけ" do
+      # N+1 の検出は外す：複数のスレッドから同じ処理を同時に実行する
+      it "定員1の枠に4人が同時に予約しても、予約できるのは1人だけ", prosopite: false do
         credits = [ credit ] + [ 9, 10, 12 ].map { |day| create_credit_for(create(:student), Date.new(2026, 11, day)) }
         slot_id = slot.id
         # 確認と保存の間に待ちを入れて、ロックがなければ、全員が「空きあり」と判断する状況にする

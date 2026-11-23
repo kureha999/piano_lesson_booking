@@ -124,9 +124,11 @@ RSpec.describe "生徒の一覧・登録・編集（T-02・T-03）", type: :requ
         expect { post teacher_students_path, params: valid_params }
           .to change { ActionMailer::Base.deliveries.size }.by(1)
 
+        new_scan("2人目の登録") # 登録ごとに別の scan にする
         expect {
           post teacher_students_path, params: { student: valid_params[:student].merge(name: "はなこ") }
         }.not_to change { ActionMailer::Base.deliveries.size }
+        Prosopite.finish # ここから先は、テスト自身の確認のクエリなので、調べない
         expect(User.guardian.sole.invited_by).to eq User.teacher.sole
       end
 

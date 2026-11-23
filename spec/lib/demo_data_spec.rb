@@ -1,7 +1,8 @@
 require "rails_helper"
 require "rake"
 
-RSpec.describe DemoData do
+# N+1 の検出は外す：デモデータの作成は、1件ずつ検証しながら保存する処理で、画面ではない（画面の N+1 は demo_data_screens_spec で確認する）
+RSpec.describe DemoData, prosopite: false do
   # 2026年11月11日（水）。今週は 11/9（月）〜11/15（日）
   let(:today) { Date.new(2026, 11, 11) }
 

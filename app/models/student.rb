@@ -16,8 +16,11 @@ class Student < ApplicationRecord
 
   # 指定した日が属する月に、振替権が付いた欠席の数を、生徒ごとにまとめて数える（{ 生徒の ID => 数 }。欠席がない生徒は含まない）。
   # T-02 生徒一覧の「今月の振替の利用回数」に使う（README 12-6）
-  def self.credited_absence_counts_in_month(date)
-    Absence.joins(:lesson_slot).where(no_credit_reason: nil, lesson_on: date.all_month).group("lesson_slots.student_id").count
+  # student_ids を渡すと、その生徒だけを数える
+  def self.credited_absence_counts_in_month(date, student_ids: nil)
+    absences = Absence.joins(:lesson_slot).where(no_credit_reason: nil, lesson_on: date.all_month)
+    absences = absences.where(lesson_slots: { student_id: student_ids }) if student_ids
+    absences.group("lesson_slots.student_id").count
   end
 
   # 指定した日が属する月（日本時間の1日〜末日）に、振替権が付いた欠席の数。月の上限の計算に使う（README 12-2）

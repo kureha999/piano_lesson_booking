@@ -68,6 +68,10 @@ group :development, :test do
 
   # Test data factories [https://github.com/thoughtbot/factory_bot_rails]
   gem "factory_bot_rails", "~> 6.5"
+
+  # N+1 クエリの検出（Apache-2.0）。pg_query（BSD-3-Clause）は、PostgreSQL のクエリの照合を正確にする [https://github.com/charkost/prosopite]
+  gem "prosopite", "~> 2.5"
+  gem "pg_query", "~> 6.2"
 end
 
 group :test do

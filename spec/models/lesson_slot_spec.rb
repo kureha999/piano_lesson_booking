@@ -32,7 +32,8 @@ RSpec.describe LessonSlot do
       expect(build(:lesson_slot, ends_on: nil)).to be_valid
     end
 
-    it "曜日は 0〜6 だけ" do
+    # N+1 の検出は外す：曜日を変えて、同じ検証を繰り返す
+    it "曜日は 0〜6 だけ", prosopite: false do
       expect(build(:lesson_slot, wday: -1)).not_to be_valid
       expect(build(:lesson_slot, wday: 7)).not_to be_valid
       expect((0..6).map { |wday| build(:lesson_slot, wday: wday).valid? }).to all(be true)
