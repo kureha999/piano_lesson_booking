@@ -18,6 +18,22 @@ RSpec.describe MakeupSlotAvailability do
     availability.unavailable_reason(slot)
   end
 
+  describe "#unavailable_reason_counts" do
+    it "予約できない理由ごとに、まだ終わっていない枠の数を返す（予約できる枠は数えない）" do
+      create_makeup_slot(Date.new(2026, 11, 16)) # 予約できる
+      create_makeup_slot(Date.new(2026, 12, 12)) # 期限より後
+      create_makeup_slot(Date.new(2026, 12, 14)) # 期限より後
+      full = create_makeup_slot(Date.new(2026, 11, 17))
+      create(:makeup_reservation, makeup_slot: full, makeup_credit: create_credit_for(create(:student), Date.new(2026, 11, 9)))
+
+      expect(availability.unavailable_reason_counts).to eq(out_of_period: 2, full: 1)
+    end
+
+    it "枠がなければ、空" do
+      expect(availability.unavailable_reason_counts).to eq({})
+    end
+  end
+
   describe "予約できる枠" do
     it "期限内で、締切前で、定員に空きがあり、重ならない枠は予約できる" do
       slot = create_makeup_slot(Date.new(2026, 11, 16))

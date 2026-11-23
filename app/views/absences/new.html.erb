@@ -1,0 +1,52 @@
+<%# P-02 振替枠の選択。ルールの範囲内で予約できる枠だけを、日付順に表示する。まだ欠席は登録しない（P-03 の「確定する」で確定する） %>
+<% content_for :title, "振替枠の選択 | ふりかえ帳" %>
+<%
+  lesson = @absence.lesson_slot
+  lesson_text = "#{japanese_date_with_wday(@absence.lesson_on)} #{lesson.time_range}"
+  confirm_path = confirm_student_absences_path(@student)
+  lesson_params = { lesson_slot_id: lesson.id, lesson_on: @absence.lesson_on }
+  period = (@absence.lesson_on + 1)..@expires_on
+%>
+
+<h1 class="h4 mb-3">振替の日を選ぶ</h1>
+<p>
+  <strong><%= @student.name %>さん</strong>の <strong><%= lesson_text %></strong> のレッスンを欠席します。<br>
+  振替は、<%= japanese_date(period.begin) %>から<%= japanese_date(period.end) %>までに受講できる枠から選べます。
+</p>
+
+<% if @slots.empty? %>
+  <div class="alert alert-warning" role="status">
+    <p class="fw-bold mb-1">いま選べる振替枠がありません。</p>
+    <% if @reason_counts.empty? %>
+      <p class="mb-0">先生が登録した振替枠が、まだありません。</p>
+    <% else %>
+      <ul class="mb-0">
+        <% @reason_counts.each_key do |reason| %>
+          <% message = makeup_unavailable_message(reason, period) %>
+          <%= tag.li(message) if message %>
+        <% end %>
+      </ul>
+    <% end %>
+  </div>
+  <p class="text-body-secondary">振替は後から、予定一覧で選べます（期限は <%= japanese_date(@expires_on) %> までです）。</p>
+<% else %>
+  <ul class="list-group mb-4">
+    <% @slots.each do |slot| %>
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        <span>
+          <%= makeup_slot_text(slot) %>
+          <span class="text-body-secondary">（残り<%= slot.capacity - slot.reserved_count %>名）</span>
+        </span>
+        <%= button_to "この枠にする", confirm_path, method: :get,
+              params: lesson_params.merge(makeup_slot_id: slot.id), class: "btn btn-primary btn-sm",
+              form: { class: "d-inline" },
+              aria: { label: "#{makeup_slot_text(slot)}の枠にする" } %>
+      </li>
+    <% end %>
+  </ul>
+<% end %>
+
+<div class="d-flex gap-2">
+  <%= button_to "振替は後で選ぶ", confirm_path, method: :get, params: lesson_params, class: "btn btn-outline-secondary" %>
+  <%= link_to "やめる", root_path, class: "btn btn-link" %>
+</div>
