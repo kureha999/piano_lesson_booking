@@ -84,10 +84,11 @@ class MakeupSlotAvailability
       .pluck(:lesson_slot_id, :lesson_on).to_set
   end
 
-  # ほかの有効な振替予約（この振替権の予約は、credit_used? で除いているので含まない）
+  # その生徒のほかの有効な振替予約（この振替権の予約は、credit_used? で除いているので含まない）。
+  # すでに予約している枠そのものも、時間が重なるので、選べない（同じ生徒が同じ枠を二重に予約しない）
   def reservation_conflict?(slot)
     student.makeup_reservations.active.includes(:makeup_slot).any? do |reservation|
-      reservation.makeup_slot_id != slot.id && overlap?(reservation.makeup_slot.starts_at, reservation.makeup_slot.ends_at, slot)
+      overlap?(reservation.makeup_slot.starts_at, reservation.makeup_slot.ends_at, slot)
     end
   end
 

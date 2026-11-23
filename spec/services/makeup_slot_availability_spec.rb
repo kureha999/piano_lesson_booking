@@ -201,6 +201,15 @@ RSpec.describe MakeupSlotAvailability do
       expect(described_class.new(other_credit).unavailable_reason(overlapping)).to eq :conflict
     end
 
+    it "同じ生徒が、別の振替権で、すでに予約している枠をもう一度選ぶことはできない（二重に予約しない）" do
+      reserved = create_makeup_slot(Date.new(2026, 11, 16), capacity: 2)
+      create(:makeup_reservation, makeup_slot: reserved, makeup_credit: credit)
+      other_credit = create_credit_for(student, Date.new(2026, 11, 4)) # 水曜日の別の回（期間に 11/16 を含む）
+
+      expect(described_class.new(other_credit).unavailable_reason(reserved)).to eq :conflict
+      expect(ReserveMakeupSlot.call(makeup_credit: other_credit, makeup_slot: reserved).reason).to eq :conflict
+    end
+
     it "キャンセルした振替予約とは、重なりに数えない" do
       reserved = create_makeup_slot(Date.new(2026, 11, 16), 10)
       create(:makeup_reservation, :canceled, makeup_slot: reserved, makeup_credit: credit)
