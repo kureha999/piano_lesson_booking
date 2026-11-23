@@ -962,6 +962,13 @@ bin/rspec spec/models/user_spec.rb
 bin/rspec spec/models/user_spec.rb:12
 ```
 
+```bash
+bin/rspec spec/system             # ブラウザ（headless Chrome）での操作の確認だけを実行する
+```
+
+- system spec（`spec/system/`）は、画面遷移図②③の主要な流れを、Chrome で通しで確認します。Chrome が入っていれば動きます（ChromeDriver は不要）。
+- ドライバーは Cuprite（MIT）です。Selenium は、クリックがページに届かず不安定になったため使いません。失敗したときのスクリーンショットは `tmp/capybara/` に保存されます（CI では artifact にも保存）。
+
 テストの共通処理（ヘルパーや設定）は `spec/support/` に置きます。`spec/rails_helper.rb` が自動で読み込みます。
 
 **カバレッジの見方**
