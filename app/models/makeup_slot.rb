@@ -23,6 +23,11 @@ class MakeupSlot < ApplicationRecord
     makeup_reservations.active.count
   end
 
+  # 振替予約の締切（予約・キャンセルができる最後の時刻）。枠の開始日の○日前（ルールの設定。初期値は1日前）の 23:59:59（日本時間）
+  def reservation_deadline(rule = MakeupRule.current)
+    (starts_at.to_date - rule.reservation_deadline_days).end_of_day
+  end
+
   # 「6月13日 15:00〜15:30」
   def period_text
     "#{starts_at.strftime('%-m月%-d日 %H:%M')}〜#{ends_at.strftime('%H:%M')}"
