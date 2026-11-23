@@ -24,6 +24,7 @@ ja:
       makeup_rule: 振替ルール
       absence: 欠席
       makeup_credit: 振替権
+      makeup_reservation: 振替予約
     attributes:
       student:
         name: 名前
@@ -53,6 +54,11 @@ ja:
         student: 生徒
         absence: 欠席
         expires_on: 振替の期限
+      makeup_reservation:
+        makeup_credit: 振替権
+        makeup_slot: 振替枠
+        student: 生徒
+        canceled_at: キャンセルした日時
       user:
         email: メールアドレス
         name: 名前

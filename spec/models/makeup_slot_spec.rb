@@ -106,6 +106,22 @@ RSpec.describe MakeupSlot do
       slot.capacity = 1
       expect(slot).to be_valid
     end
+
+    it "予約数には、有効な予約だけを数える（キャンセルした予約は数えない）" do
+      slot = create(:makeup_slot, capacity: 3)
+      create(:makeup_reservation, makeup_slot: slot)
+      thursday = create(:lesson_slot, wday: 4) # 固定枠は先生が1人なので、別の曜日にする
+      credit = create(:makeup_credit, absence: create(:absence, lesson_slot: thursday, lesson_on: Date.new(2099, 1, 8)))
+      create(:makeup_reservation, :canceled, makeup_slot: slot, makeup_credit: credit)
+
+      expect(slot.reserved_count).to eq 1
+    end
+
+    it "予約がある振替枠は、キャンセルした予約だけでも削除できない" do
+      reservation = create(:makeup_reservation, :canceled)
+
+      expect(reservation.makeup_slot.destroy).to be false
+    end
   end
 
   describe "振替枠どうしの重なり" do

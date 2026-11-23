@@ -4,6 +4,9 @@ class MakeupCredit < ApplicationRecord
   belongs_to :student
   belongs_to :absence
 
+  # 予約の履歴を残すため、予約がある振替権は削除できない（キャンセルした予約も含む）
+  has_many :makeup_reservations, dependent: :restrict_with_error
+
   validates :expires_on, presence: true
   validates :absence_id, uniqueness: { message: "にはすでに振替権が付いています" }, allow_nil: true
   validate :student_must_be_the_absent_student

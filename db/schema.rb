@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_23_000003) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_23_000004) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -49,6 +49,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_23_000003) do
     t.datetime "updated_at", null: false
     t.index ["absence_id"], name: "index_makeup_credits_on_absence_id", unique: true
     t.index ["student_id"], name: "index_makeup_credits_on_student_id"
+  end
+
+  create_table "makeup_reservations", force: :cascade do |t|
+    t.bigint "makeup_credit_id", null: false
+    t.bigint "makeup_slot_id", null: false
+    t.bigint "student_id", null: false
+    t.datetime "canceled_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["makeup_credit_id"], name: "index_makeup_reservations_on_credit_active", unique: true, where: "(canceled_at IS NULL)"
+    t.index ["makeup_slot_id", "student_id"], name: "index_makeup_reservations_on_slot_and_student_active", unique: true, where: "(canceled_at IS NULL)"
+    t.index ["makeup_slot_id"], name: "index_makeup_reservations_on_makeup_slot_id"
+    t.index ["student_id"], name: "index_makeup_reservations_on_student_id"
   end
 
   create_table "makeup_rules", force: :cascade do |t|
@@ -116,5 +129,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_23_000003) do
   add_foreign_key "lesson_slots", "students"
   add_foreign_key "makeup_credits", "absences"
   add_foreign_key "makeup_credits", "students"
+  add_foreign_key "makeup_reservations", "makeup_credits"
+  add_foreign_key "makeup_reservations", "makeup_slots"
+  add_foreign_key "makeup_reservations", "students"
   add_foreign_key "students", "users", column: "guardian_id"
 end

@@ -2,6 +2,9 @@
 # 先生は1人なので、振替枠どうしや、固定枠（毎週のレッスン）と時間が重なる枠は登録できない。
 # 振替枠どうしの重なりは DB の排他制約（同時に登録されても破れない）、固定枠との重なりはこのモデルで確認する。
 class MakeupSlot < ApplicationRecord
+  # 予約の履歴を残すため、予約がある振替枠は削除できない（キャンセルした予約も含む）
+  has_many :makeup_reservations, dependent: :restrict_with_error
+
   validates :starts_at, :ends_at, presence: true
   validates :capacity, presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 1, allow_nil: true }
   validate :ends_at_after_starts_at
@@ -15,9 +18,9 @@ class MakeupSlot < ApplicationRecord
   # これから受け付ける枠（終了前の枠）。過去の枠は含めない。開始日時の順
   scope :upcoming, -> { where("ends_at > ?", Time.current).order(:starts_at) }
 
-  # 予約の数。振替の予約（makeup_reservations）ができたら、有効な予約（canceled_at が NULL）の数を返す
+  # 予約の数。有効な予約（キャンセルされていない予約）の数
   def reserved_count
-    0
+    makeup_reservations.active.count
   end
 
   # 「6月13日 15:00〜15:30」
