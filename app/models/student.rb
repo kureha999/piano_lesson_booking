@@ -4,6 +4,8 @@ class Student < ApplicationRecord
 
   # 毎週の固定枠。履歴（欠席）が指すので、固定枠がある生徒は削除できない
   has_many :lesson_slots, dependent: :restrict_with_error
+  # 振替権。履歴なので、振替権がある生徒は削除できない
+  has_many :makeup_credits, dependent: :restrict_with_error
 
   validates :name, presence: true
   validate :guardian_must_be_guardian

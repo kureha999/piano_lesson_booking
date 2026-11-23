@@ -10,9 +10,21 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_23_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_23_000003) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "absences", force: :cascade do |t|
+    t.bigint "lesson_slot_id", null: false
+    t.date "lesson_on", null: false
+    t.bigint "reported_by_id", null: false
+    t.integer "no_credit_reason"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["lesson_slot_id", "lesson_on"], name: "index_absences_on_lesson_slot_id_and_lesson_on", unique: true
+    t.index ["lesson_slot_id"], name: "index_absences_on_lesson_slot_id"
+    t.index ["reported_by_id"], name: "index_absences_on_reported_by_id"
+  end
 
   create_table "lesson_slots", force: :cascade do |t|
     t.bigint "student_id", null: false
@@ -27,6 +39,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_23_000001) do
     t.check_constraint "end_time > start_time", name: "lesson_slots_end_after_start"
     t.check_constraint "ends_on IS NULL OR ends_on >= starts_on", name: "lesson_slots_ends_on_after_starts_on"
     t.check_constraint "wday >= 0 AND wday <= 6", name: "lesson_slots_wday_range"
+  end
+
+  create_table "makeup_credits", force: :cascade do |t|
+    t.bigint "student_id", null: false
+    t.bigint "absence_id", null: false
+    t.date "expires_on", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["absence_id"], name: "index_makeup_credits_on_absence_id", unique: true
+    t.index ["student_id"], name: "index_makeup_credits_on_student_id"
   end
 
   create_table "makeup_rules", force: :cascade do |t|
@@ -89,6 +111,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_23_000001) do
     t.index ["role"], name: "index_users_on_role_teacher_only", unique: true, where: "(role = 1)"
   end
 
+  add_foreign_key "absences", "lesson_slots"
+  add_foreign_key "absences", "users", column: "reported_by_id"
   add_foreign_key "lesson_slots", "students"
+  add_foreign_key "makeup_credits", "absences"
+  add_foreign_key "makeup_credits", "students"
   add_foreign_key "students", "users", column: "guardian_id"
 end
