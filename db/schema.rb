@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_22_000002) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_23_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -27,6 +27,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_22_000002) do
     t.check_constraint "end_time > start_time", name: "lesson_slots_end_after_start"
     t.check_constraint "ends_on IS NULL OR ends_on >= starts_on", name: "lesson_slots_ends_on_after_starts_on"
     t.check_constraint "wday >= 0 AND wday <= 6", name: "lesson_slots_wday_range"
+  end
+
+  create_table "makeup_rules", force: :cascade do |t|
+    t.integer "monthly_limit", default: 2, null: false
+    t.integer "valid_days", default: 30, null: false
+    t.integer "absence_deadline_hours", default: 2, null: false
+    t.integer "reservation_deadline_days", default: 1, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.check_constraint "absence_deadline_hours >= 0", name: "makeup_rules_absence_deadline_hours_non_negative"
+    t.check_constraint "id = 1", name: "makeup_rules_single_row"
+    t.check_constraint "monthly_limit >= 0", name: "makeup_rules_monthly_limit_non_negative"
+    t.check_constraint "reservation_deadline_days >= 0", name: "makeup_rules_reservation_deadline_days_non_negative"
+    t.check_constraint "valid_days >= 0", name: "makeup_rules_valid_days_non_negative"
   end
 
   create_table "makeup_slots", force: :cascade do |t|

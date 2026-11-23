@@ -21,6 +21,7 @@ ja:
       student: 生徒
       lesson_slot: 固定枠
       makeup_slot: 振替枠
+      makeup_rule: 振替ルール
     attributes:
       student:
         name: 名前
@@ -36,6 +37,11 @@ ja:
         starts_at: 開始日時
         ends_at: 終了日時
         capacity: 定員
+      makeup_rule:
+        monthly_limit: 月の上限回数
+        valid_days: 振替の期限
+        absence_deadline_hours: 欠席連絡の締切
+        reservation_deadline_days: 振替予約の締切
       user:
         email: メールアドレス
         name: 名前
