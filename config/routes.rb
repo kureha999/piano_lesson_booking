@@ -20,6 +20,11 @@ Rails.application.routes.draw do
       get :confirm, on: :collection # P-03 確認
     end
 
+    # 振替予約のキャンセル（P-05 の「キャンセル」。行は消さず、canceled_at を入れる）
+    resources :makeup_reservations, only: [] do
+      resource :cancellation, only: :create, controller: "makeup_reservation_cancellations"
+    end
+
     # 未使用の振替権から、振替を予約する（P-05 の「振替を選ぶ」→ P-02 → P-03 → P-04）
     resources :makeup_credits, only: [] do
       resources :makeup_reservations, only: %i[new create show] do

@@ -24,7 +24,18 @@
                 <%= entry.starts_at.strftime("%H:%M") %>〜<%= entry.ends_at.strftime("%H:%M") %>
               </span>
               <% if entry.makeup? %>
-                <span class="badge text-bg-primary">振替（<%= japanese_date_with_wday(entry.reservation.makeup_credit.absence.lesson_on) %>の欠席の分）</span>
+                <span class="d-flex align-items-center gap-2">
+                  <span class="badge text-bg-primary">振替（<%= japanese_date_with_wday(entry.reservation.makeup_credit.absence.lesson_on) %>の欠席の分）</span>
+                  <% if entry.reservation.cancelable? %>
+                    <%# 締切前の予約だけ「キャンセル」を表示する。確認ダイアログ（D-01）を出してから送る %>
+                    <%= button_to "キャンセル", student_makeup_reservation_cancellation_path(student, entry.reservation),
+                          method: :post, class: "btn btn-outline-danger btn-sm",
+                          form: { class: "d-inline", data: { turbo_confirm: "#{makeup_slot_text(entry.reservation.makeup_slot)}の振替予約をキャンセルします。よろしいですか？" } },
+                          aria: { label: "#{makeup_slot_text(entry.reservation.makeup_slot)}の振替予約をキャンセルする" } %>
+                  <% else %>
+                    <span class="small text-body-secondary">キャンセルの締切を過ぎました</span>
+                  <% end %>
+                </span>
               <% elsif entry.absent %>
                 <span class="badge text-bg-secondary">欠席連絡ずみ</span>
               <% else %>

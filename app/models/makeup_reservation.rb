@@ -23,6 +23,12 @@ class MakeupReservation < ApplicationRecord
     !active?
   end
 
+  # キャンセルできるか。有効な予約で、振替枠の予約の締切（前日の23:59など。MakeupSlot#reservation_deadline）までで、
+  # 枠がまだ始まっていないこと（README 12-2「振替予約のキャンセル」）。締切後のキャンセルはできず、振替権は使用済みのままになる
+  def cancelable?(now = Time.current, rule = MakeupRule.current)
+    active? && now < makeup_slot.starts_at && now <= makeup_slot.reservation_deadline(rule)
+  end
+
   private
 
   # 予約する生徒は、振替権を持つ生徒と同じであること

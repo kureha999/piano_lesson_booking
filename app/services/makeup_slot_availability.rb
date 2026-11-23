@@ -36,7 +36,7 @@ class MakeupSlotAvailability
     return :credit_used if credit_used?
     return :already_started if slot.starts_at <= @now
     return :out_of_period unless period.cover?(slot.starts_at.to_date)
-    return :deadline_passed if @now > reservation_deadline(slot)
+    return :deadline_passed if @now > slot.reservation_deadline(@rule)
     return :full if reserved_count(slot) >= slot.capacity
     return :conflict if conflicting?(slot)
 
@@ -52,11 +52,6 @@ class MakeupSlotAvailability
   # 受講できる日。欠席日の翌日から、振替権の期限まで（両端を含む）
   def period
     @period ||= (@credit.absence.lesson_on + 1)..@credit.expires_on
-  end
-
-  # 振替予約の締切。枠の開始日の○日前の 23:59（日本時間）まで
-  def reservation_deadline(slot)
-    (slot.starts_at.to_date - @rule.reservation_deadline_days).end_of_day
   end
 
   def credit_used?

@@ -17,6 +17,10 @@ class MakeupReservationPolicy < ApplicationPolicy
     guardian?
   end
 
+  def cancel?
+    guardian?
+  end
+
   private
 
   def guardian?
