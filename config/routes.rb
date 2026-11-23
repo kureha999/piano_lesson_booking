@@ -10,6 +10,7 @@ Rails.application.routes.draw do
     root "dashboard#show" # T-01 ダッシュボード
     resources :students, only: %i[index new create edit update] # T-02 生徒一覧、T-03 生徒の登録・編集
     resources :makeup_slots, only: %i[index new create edit update] # T-06 振替枠の一覧、T-07 振替枠の登録・編集
+    resource :makeup_rule, only: %i[edit update] # T-08 振替ルールの設定（教室に1つだけ）
     resources :lesson_slots, only: %i[index new create edit update] # T-04 固定枠の一覧、T-05 固定枠の登録・変更
   end
 

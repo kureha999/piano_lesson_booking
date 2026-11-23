@@ -1,0 +1,32 @@
+<%# T-08 振替ルールの設定。行がない間は、初期値が入った状態で表示する %>
+<% content_for :title, "振替ルール | ふりかえ帳" %>
+
+<h1 class="h4 mb-3">振替ルール</h1>
+<p class="text-body-secondary">教室の振替のルールです。変更後に作られた振替権から適用します（すでにある振替権は変わりません）。</p>
+
+<%= form_with(model: @makeup_rule, url: teacher_makeup_rule_path, method: :patch) do |f| %>
+  <% if @makeup_rule.errors[:base].any? %>
+    <div class="alert alert-danger" role="alert">
+      <%= safe_join(@makeup_rule.errors[:base], tag.br) %>
+    </div>
+  <% end %>
+
+  <% [
+       [ :monthly_limit, "回", "1か月に振替権が付く欠席の回数です。" ],
+       [ :valid_days, "日以内", "欠席日の翌日から数えて、何日後までの振替枠を予約できるかです。" ],
+       [ :absence_deadline_hours, "時間前", "レッスン開始のこの時間前までに連絡すると、振替権が付きます。" ],
+       [ :reservation_deadline_days, "日前の23:59", "振替枠のこの日数前の23:59まで、予約・キャンセルができます（1なら前日の23:59）。" ]
+     ].each do |attribute, unit, help| %>
+    <div class="mb-3">
+      <%= f.label attribute, class: "form-label" %>
+      <div class="input-group">
+        <%= f.number_field attribute, min: 0, step: 1, class: "form-control" %>
+        <span class="input-group-text"><%= unit %></span>
+      </div>
+      <div class="form-text"><%= help %></div>
+      <%= field_error(@makeup_rule, attribute) %>
+    </div>
+  <% end %>
+
+  <%= f.submit "保存する", class: "btn btn-primary" %>
+<% end %>
