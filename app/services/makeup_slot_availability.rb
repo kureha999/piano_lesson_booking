@@ -27,6 +27,11 @@ class MakeupSlotAvailability
     MakeupSlot.upcoming.select { |slot| unavailable_reason(slot).nil? }
   end
 
+  # 予約できない理由ごとの、枠の数（まだ終わっていない枠が対象）。予約できる枠がないときに、理由を表示するために使う
+  def unavailable_reason_counts
+    MakeupSlot.upcoming.filter_map { |slot| unavailable_reason(slot) }.tally
+  end
+
   def unavailable_reason(slot)
     return :credit_used if credit_used?
     return :already_started if slot.starts_at <= @now

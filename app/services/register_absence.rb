@@ -6,7 +6,7 @@
 #   result.absence         # 登録した欠席（失敗したときは、エラーが入った未保存の欠席）
 #   result.makeup_credit   # 付けた振替権（付かなかったときは nil。理由は absence.no_credit_reason）
 #
-# 振替権が付く条件（締切の判定を先に行う）：
+# 振替権が付く条件（判定は MakeupCreditEligibility。締切の判定を先に行う）：
 #   1. 欠席連絡の締切（レッスン開始の○時間前）までに連絡した。締切ちょうどの時刻までは付く
 #   2. 欠席日が属する月（日本時間の1日〜末日）に、その生徒に振替権が付いた欠席が、月の上限に達していない
 # 付かない場合も、欠席は登録する。理由は、1 に当てはまらなければ「締切後」、2 に当てはまらなければ「月の上限」。
@@ -35,10 +35,10 @@ class RegisterAbsence
 
     student.with_lock do
       if absence.valid?
-        rule = MakeupRule.current
-        absence.no_credit_reason = no_credit_reason(absence, rule)
+        eligibility = MakeupCreditEligibility.new(absence)
+        absence.no_credit_reason = eligibility.no_credit_reason
         absence.save!
-        credit = grant_credit(absence, rule) unless absence.no_credit_reason
+        credit = grant_credit(absence, eligibility.expires_on) unless absence.no_credit_reason
       end
     end
 
@@ -55,15 +55,7 @@ class RegisterAbsence
     @lesson_slot.student
   end
 
-  # 振替権が付かない理由。付くときは nil
-  def no_credit_reason(absence, rule)
-    return :after_deadline if Time.current > absence.lesson_starts_at - rule.absence_deadline_hours.hours
-    return :over_monthly_limit if student.credited_absence_count_in_month(absence.lesson_on) >= rule.monthly_limit
-
-    nil
-  end
-
-  def grant_credit(absence, rule)
-    MakeupCredit.create!(student: student, absence: absence, expires_on: absence.lesson_on + rule.valid_days)
+  def grant_credit(absence, expires_on)
+    MakeupCredit.create!(student: student, absence: absence, expires_on: expires_on)
   end
 end
