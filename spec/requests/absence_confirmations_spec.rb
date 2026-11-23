@@ -161,6 +161,16 @@ RSpec.describe "欠席の確認・確定（P-03・P-04）", type: :request do
         expect(response).to redirect_to root_path
       end
 
+      it "確認のあと、確定の直前に欠席を登録できなくなったとき（同時操作）は、何も登録せずにホームに戻す" do
+        result = ConfirmAbsence::Result.new(nil, nil, nil, :invalid)
+        allow(ConfirmAbsence).to receive(:call).and_return(result)
+
+        expect { post student_absences_path(student), params: lesson_params }.not_to change { counts }
+
+        expect(response).to redirect_to root_path
+        expect(flash[:alert]).to eq "このレッスンは欠席を連絡できません。"
+      end
+
       it "ほかの家庭の子どもには、確定できない（404）" do
         other = create(:student)
         other_slot = create(:lesson_slot, student: other, wday: 4)
