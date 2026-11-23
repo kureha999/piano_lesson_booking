@@ -73,6 +73,11 @@ end
 group :test do
   # Code coverage [https://github.com/simplecov-ruby/simplecov]
   gem "simplecov", "~> 1.3", require: false
+
+  # system spec（ブラウザでの操作の確認）[https://github.com/teamcapybara/capybara]
+  gem "capybara", "~> 3.40"
+  # system spec で Chrome を直接操作するドライバー（MIT。ChromeDriver は不要）[https://github.com/rubycdp/cuprite]
+  gem "cuprite", "~> 0.20"
 end
 
 group :development do

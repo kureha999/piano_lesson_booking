@@ -75,6 +75,14 @@ jobs:
       - name: Run tests
         run: bin/rspec
 
+      - name: Upload system spec screenshots
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: system-spec-screenshots
+          path: tmp/capybara/
+          if-no-files-found: ignore
+
       - name: Upload coverage report
         if: always()
         uses: actions/upload-artifact@v7

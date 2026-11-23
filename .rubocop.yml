@@ -25,6 +25,9 @@ RSpec/MultipleExpectations:
 # 理由：準備（let）を共通化しても、振替ルールの検証は数行必要になるため。
 RSpec/ExampleLength:
   Max: 15
+  # system spec は、画面遷移図の「流れ」を1つの example で通しで確認するもの（途中で分けると、前の操作の結果が引き継げない）。
+  Exclude:
+    - "spec/system/**/*"
 
 # describe / context のネストの上限。既定の 3 は浅いため 4 にする。
 # 理由：「対象 > メソッド > 条件 > 例外条件」と段階を分けて読みやすく書くため。
