@@ -5,7 +5,7 @@
   lesson_text = "#{japanese_date_with_wday(@absence.lesson_on)} #{lesson.time_range}"
   confirm_path = confirm_student_absences_path(@student)
   lesson_params = { lesson_slot_id: lesson.id, lesson_on: @absence.lesson_on }
-  period = (@absence.lesson_on + 1)..@expires_on
+  period = @choices.period
 %>
 
 <h1 class="h4 mb-3">振替の日を選ぶ</h1>
@@ -14,7 +14,7 @@
   振替は、<%= japanese_date(period.begin) %>から<%= japanese_date(period.end) %>までに受講できる枠から選べます。
 </p>
 
-<%= render "shared/makeup_slot_choices", slots: @slots, reason_counts: @reason_counts, period: period, expires_on: @expires_on,
+<%= render "shared/makeup_slot_choices", slots: @choices.slots, reason_counts: @choices.reason_counts, period: period, expires_on: @choices.expires_on,
       confirm_path: confirm_path, confirm_params: lesson_params, later_message: "振替は後から、予定一覧で選べます。" %>
 
 <div class="d-flex gap-2">

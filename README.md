@@ -858,6 +858,23 @@ Railsが自動で作る Solid Queue・Solid Cache・Solid Cable のテーブル�
 | 先生の都合による休講 | 休講を記録するテーブル（固定枠と日付）。makeup_credits の absence_id を NULL可にし、休講への参照を追加する（月の上限には数えない） |
 | 生徒の退会 | students に退会日を追加し、退会後の予定と予約を表示しない |
 
+### 12-7. 責務の分離の方針（どの処理をどこに置くか）
+
+Controller は「受け取る・呼ぶ・返す」だけにします。迷ったら、次の表のとおりに置きます。
+
+| 置き場所 | 置くもの | 例 |
+|---|---|---|
+| Controller | パラメーターを受け取る、認可（Pundit）、サービスを1つ呼ぶ、結果に合わせて表示・移動先を決める | `AbsencesController`、`Teacher::*Controller` |
+| Concern（`app/controllers/concerns`） | 複数の Controller で同じ「受け取る」処理 | `OwnStudent`（自分の子どもに絞って探す）、`MakeupSlotAlerts` |
+| Service（`app/services`） | 複数のモデルをまたぐ処理、判定、集計、DB の制約エラーの扱い。1クラス1つの仕事 | `ConfirmAbsence`、`ReserveMakeupSlot`、`MakeupCreditEligibility`、`MonthlyCreditUsage`、`AbsenceMakeupChoices`、`SaveMakeupSlot` |
+| Form（`app/forms`） | 複数のモデルを1つの画面で登録・更新する入力 | `StudentForm`、`LessonSlotForm` |
+| Model | 1つのテーブルの検証・関連・スコープ・その行だけで決まる計算 | `MakeupSlot#reserved_count`、`LessonSlot.effective_on` |
+| Helper | 画面に出す文言の組み立て（メッセージ・日付の書式） | `AbsencesHelper`、`TeacherHelper` |
+| View | 表示だけ（条件分岐は表示の切り替えまで。判定は Service に置く） | `absences/confirm.html.erb` |
+
+- 同時操作で破れてはいけないルール（二重予約・定員・先生は1人）は DB の制約で守ります。Service は、行のロックと、制約違反のエラーを画面用のエラーに変える処理を受け持ちます。
+- Controller から Service を呼ぶときは、Service が「成功か・失敗の理由」を返し、Controller は理由に合わせて戻す画面を決めます（`redirect_after_problem`）。
+
 ---
 
 ## 13. ローカル環境の構築

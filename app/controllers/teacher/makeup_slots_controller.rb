@@ -15,7 +15,7 @@ module Teacher
       authorize MakeupSlot
       @makeup_slot = MakeupSlot.new(slot_params)
 
-      if save(@makeup_slot)
+      if SaveMakeupSlot.call(@makeup_slot)
         redirect_to teacher_makeup_slots_path, notice: "振替枠（#{@makeup_slot.period_text}）を登録しました。"
       else
         render :new, status: :unprocessable_content
@@ -30,7 +30,7 @@ module Teacher
       @makeup_slot = find_slot
       @makeup_slot.assign_attributes(slot_params)
 
-      if save(@makeup_slot)
+      if SaveMakeupSlot.call(@makeup_slot)
         redirect_to teacher_makeup_slots_path, notice: "振替枠（#{@makeup_slot.period_text}）を更新しました。"
       else
         render :edit, status: :unprocessable_content
@@ -48,16 +48,6 @@ module Teacher
 
     def slot_params
       params.expect(makeup_slot: %i[starts_at ends_at capacity])
-    end
-
-    # 検証のあと、保存の直前に、同じ時間の枠が登録されたときは、DB の排他制約が止める。そのときも、重なりのエラーとして表示する
-    def save(slot)
-      slot.save
-    rescue ActiveRecord::StatementInvalid => e
-      raise unless e.cause.is_a?(PG::ExclusionViolation)
-
-      slot.errors.add(:base, "同じ時間に、ほかの振替枠が登録されました。時間を変えて、もう一度お試しください")
-      false
     end
   end
 end

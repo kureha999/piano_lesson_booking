@@ -11,7 +11,7 @@ module Teacher
       authorize @makeup_rule
       @makeup_rule.assign_attributes(rule_params)
 
-      if save(@makeup_rule)
+      if SaveMakeupRule.call(@makeup_rule)
         redirect_to edit_teacher_makeup_rule_path, notice: "振替ルールを保存しました。"
       else
         render :edit, status: :unprocessable_content
@@ -22,14 +22,6 @@ module Teacher
 
     def rule_params
       params.expect(makeup_rule: %i[monthly_limit valid_days absence_deadline_hours reservation_deadline_days])
-    end
-
-    # 行がない状態で同時に保存されたときは、主キーの重複を DB が止める。もう一度保存してもらう
-    def save(rule)
-      rule.save
-    rescue ActiveRecord::RecordNotUnique
-      rule.errors.add(:base, "ほかの画面で同時に保存されました。もう一度お試しください")
-      false
     end
   end
 end

@@ -5,7 +5,7 @@ module Teacher
       authorize Student
       @students = policy_scope(Student).includes(:guardian).order(:id)
       # 今月（日本時間）の振替の利用回数（その月に振替権が付いた欠席の数）と、月の上限
-      @usage_counts = Student.credited_absence_counts_in_month(Date.current)
+      @usage_counts = MonthlyCreditUsage.counts(Date.current)
       @monthly_limit = MakeupRule.current.monthly_limit
     end
 
@@ -19,7 +19,7 @@ module Teacher
       @form = StudentForm.new(invited_by: current_user, **form_params)
 
       if @form.save
-        redirect_to teacher_students_path, created_flash(@form)
+        redirect_to teacher_students_path, helpers.student_created_flash(@form)
       else
         render :new, status: :unprocessable_content
       end
@@ -50,18 +50,6 @@ module Teacher
 
     def form_params
       params.expect(student: %i[name guardian_name guardian_email]).to_h.symbolize_keys
-    end
-
-    # 登録後に表示するメッセージ。新しい保護者には招待メールを送るので、送れたかどうかも伝える
-    def created_flash(form)
-      return { notice: "登録済みの保護者（#{form.guardian.name}さん）に、#{form.name}さんを追加しました。" } unless form.guardian_created?
-
-      message = "#{form.name}さんと保護者（#{form.guardian.name}さん）を登録しました。"
-      if form.invitation_sent?
-        { notice: "#{message}#{form.guardian.email} に、パスワード設定の招待メールを送りました。" }
-      else
-        { notice: message, alert: "招待メールを送れませんでした。保護者の方に、ログイン画面の「パスワードを忘れた方」からパスワードを設定してもらってください。" }
-      end
     end
   end
 end

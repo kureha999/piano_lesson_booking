@@ -33,7 +33,7 @@ module Teacher
       @form = LessonSlotForm.new(lesson_slot: slot, **form_params.except(:student_id), student_id: slot.student_id)
 
       if @form.save
-        redirect_to teacher_lesson_slots_path, notice: updated_message(@form, slot)
+        redirect_to teacher_lesson_slots_path, notice: helpers.lesson_slot_updated_message(@form, slot)
       else
         render :edit, status: :unprocessable_content
       end
@@ -59,13 +59,6 @@ module Teacher
 
     def form_params
       params.expect(lesson_slot: %i[student_id wday start_time end_time starts_on]).to_h.symbolize_keys
-    end
-
-    def updated_message(form, slot)
-      name = slot.student.name
-      return "#{name}さんの固定枠は、変更がありませんでした。" if form.unchanged?
-
-      "#{name}さんの固定枠を変更しました。今の枠は前日で終了し、#{helpers.japanese_date(form.lesson_slot.starts_on)}から新しい枠になります。"
     end
   end
 end

@@ -4,7 +4,7 @@
   lesson = @absence.lesson_slot
   lesson_text = "#{japanese_date_with_wday(@absence.lesson_on)} #{lesson.time_range}"
   lesson_params = { lesson_slot_id: lesson.id, lesson_on: @absence.lesson_on }
-  back_path = @eligibility.eligible? ? new_student_absence_path(@student, lesson_params) : root_path
+  back_path = @choices.eligible? ? new_student_absence_path(@student, lesson_params) : root_path
 %>
 
 <h1 class="h4 mb-3">内容の確認</h1>
@@ -24,16 +24,16 @@
     <% else %>
       <p class="fs-5 mb-0"><%= japanese_date_with_wday(@absence.lesson_on) %>を欠席します</p>
       <p class="text-body-secondary mt-2 mb-0">欠席：<%= lesson_text %></p>
-      <% if @eligibility.eligible? %>
-        <p class="mt-2 mb-0">振替は後で選びます（<%= japanese_date(@expires_on) %>まで、予定一覧から選べます）。</p>
+      <% if @choices.eligible? %>
+        <p class="mt-2 mb-0">振替は後で選びます（<%= japanese_date(@choices.expires_on) %>まで、予定一覧から選べます）。</p>
       <% end %>
     <% end %>
   </div>
 </div>
 
-<% unless @eligibility.eligible? %>
+<% unless @choices.eligible? %>
   <div class="alert alert-warning" role="status">
-    <%= no_credit_message(@eligibility.no_credit_reason, MakeupRule.current) %>
+    <%= no_credit_message(@choices.eligibility.no_credit_reason, MakeupRule.current) %>
     欠席の連絡だけを受け付けます。
   </div>
 <% end %>
