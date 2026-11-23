@@ -24,12 +24,12 @@ class MakeupSlotAvailability
 
   # 予約できる振替枠。まだ終わっていない枠だけを調べる
   def slots
-    MakeupSlot.upcoming.select { |slot| unavailable_reason(slot).nil? }
+    upcoming_slots.select { |slot| unavailable_reason(slot).nil? }
   end
 
   # 予約できない理由ごとの、枠の数（まだ終わっていない枠が対象）。予約できる枠がないときに、理由を表示するために使う
   def unavailable_reason_counts
-    MakeupSlot.upcoming.filter_map { |slot| unavailable_reason(slot) }.tally
+    upcoming_slots.filter_map { |slot| unavailable_reason(slot) }.tally
   end
 
   def unavailable_reason(slot)
@@ -37,13 +37,18 @@ class MakeupSlotAvailability
     return :already_started if slot.starts_at <= @now
     return :out_of_period unless period.cover?(slot.starts_at.to_date)
     return :deadline_passed if @now > slot.reservation_deadline(@rule)
-    return :full if reserved_count(slot) >= slot.capacity
+    return :full if slot.reserved_count >= slot.capacity
     return :conflict if conflicting?(slot)
 
     nil
   end
 
   private
+
+  # 予約の数（定員の判定と、P-02 の「残り○名」）を、枠ごとに SQL を出さずに数えるため、予約をまとめて読み込む
+  def upcoming_slots
+    MakeupSlot.upcoming.includes(:makeup_reservations)
+  end
 
   def student
     @credit.student
@@ -58,10 +63,6 @@ class MakeupSlotAvailability
     return @credit_used if defined?(@credit_used)
 
     @credit_used = @credit.makeup_reservations.active.exists?
-  end
-
-  def reserved_count(slot)
-    MakeupReservation.active.where(makeup_slot_id: slot.id).count
   end
 
   def conflicting?(slot)
@@ -87,9 +88,13 @@ class MakeupSlotAvailability
   # その生徒のほかの有効な振替予約（この振替権の予約は、credit_used? で除いているので含まない）。
   # すでに予約している枠そのものも、時間が重なるので、選べない（同じ生徒が同じ枠を二重に予約しない）
   def reservation_conflict?(slot)
-    student.makeup_reservations.active.includes(:makeup_slot).any? do |reservation|
+    other_reservations.any? do |reservation|
       overlap?(reservation.makeup_slot.starts_at, reservation.makeup_slot.ends_at, slot)
     end
+  end
+
+  def other_reservations
+    @other_reservations ||= student.makeup_reservations.active.includes(:makeup_slot).to_a
   end
 
   # 接しているだけ（終了と開始が同じ）は、重ならない

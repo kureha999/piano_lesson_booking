@@ -7,7 +7,8 @@ RSpec.describe "デモデータの画面表示", type: :request do
 
   before do
     travel_to now
-    DemoData.load(today: now.to_date)
+    # データの作成（1件ずつ検証しながら保存する）は、N+1 の検出から外す。画面を開くところから検出する（#56）
+    Prosopite.pause { DemoData.load(today: now.to_date) }
   end
 
   def page
@@ -25,6 +26,7 @@ RSpec.describe "デモデータの画面表示", type: :request do
   describe "ログイン" do
     it "デモ用のアカウントとパスワード（password123）でログインできる（先生・保護者）" do
       { "teacher@demo.example.com" => teacher_root_path, "hanako@demo.example.com" => root_path }.each do |email, path|
+        new_scan("POST /login #{email}")
         post user_session_path, params: { user: { email: email, password: "password123" } }
 
         expect(response).to redirect_to path
@@ -75,11 +77,30 @@ RSpec.describe "デモデータの画面表示", type: :request do
 
     it "T-03・T-05・T-07・T-08：登録・設定の画面が開ける（振替ルールは初期値で表示）" do
       [ new_teacher_student_path, new_teacher_lesson_slot_path, new_teacher_makeup_slot_path, edit_teacher_makeup_rule_path ].each do |path|
+        new_scan("GET #{path}")
         get path
 
         expect(response).to have_http_status :ok
       end
       expect(page.at_css("input[name='makeup_rule[monthly_limit]']")["value"]).to eq "2"
+    end
+  end
+
+  describe "先生の編集画面（N+1 の確認）" do
+    before { sign_in User.find_by!(email: "teacher@demo.example.com") }
+
+    it "T-03・T-05・T-07：デモデータの全件の編集画面が、N+1 なしで開ける" do
+      paths = Student.all.map { |student| edit_teacher_student_path(student) } +
+        LessonSlot.all.map { |slot| edit_teacher_lesson_slot_path(slot) } +
+        MakeupSlot.upcoming.map { |slot| edit_teacher_makeup_slot_path(slot) }
+
+      paths.each do |path|
+        new_scan("GET #{path}")
+        get path
+
+        expect(response).to have_http_status :ok
+      end
+      expect(paths.size).to be > 10
     end
   end
 

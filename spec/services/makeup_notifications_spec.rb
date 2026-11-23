@@ -13,12 +13,14 @@ RSpec.describe MakeupNotifications do
   context "先生がいるとき" do
     before { create(:teacher, email: "teacher@example.com") }
 
-    it "欠席受付のメールを、先生と保護者の両方に、Active Job で送る" do
+    # N+1 の検出は外す：メールのジョブは受信者ごとに別のジョブで動くので、まとめて読み込めない
+    it "欠席受付のメールを、先生と保護者の両方に、Active Job で送る", prosopite: false do
       expect { described_class.absence_received(credit.absence) }
         .to have_enqueued_mail(MakeupMailer, :absence_received).twice
     end
 
-    it "振替確定・キャンセルのメールも、先生と保護者の両方に送る" do
+    # N+1 の検出は外す：同上
+    it "振替確定・キャンセルのメールも、先生と保護者の両方に送る", prosopite: false do
       expect { described_class.makeup_confirmed(reservation) }.to have_enqueued_mail(MakeupMailer, :makeup_confirmed).twice
       expect { described_class.makeup_canceled(reservation) }.to have_enqueued_mail(MakeupMailer, :makeup_canceled).twice
     end

@@ -149,7 +149,7 @@ RSpec.describe LessonSchedule do
       create(:lesson_slot, student: student, wday: 3, start_time: "16:00", end_time: "16:30")
       create(:lesson_slot, student: sibling, wday: 3, start_time: "16:30", end_time: "17:00")
 
-      lessons = described_class.new(LessonSlot.where(student: [ student, sibling ]), Date.new(2026, 6, 10)..Date.new(2026, 6, 10)).lessons
+      lessons = described_class.new(LessonSlot.where(student: [ student, sibling ]).includes(:student), Date.new(2026, 6, 10)..Date.new(2026, 6, 10)).lessons
 
       expect(lessons.map(&:student)).to eq [ student, sibling ]
     end

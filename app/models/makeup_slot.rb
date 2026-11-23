@@ -19,8 +19,13 @@ class MakeupSlot < ApplicationRecord
   scope :upcoming, -> { where("ends_at > ?", Time.current).order(:starts_at) }
 
   # 予約の数。有効な予約（キャンセルされていない予約）の数
+  # 一覧で includes(:makeup_reservations) してあれば、読み込みずみの予約から数える（枠ごとに SQL を出さない）
   def reserved_count
-    makeup_reservations.active.count
+    if makeup_reservations.loaded?
+      makeup_reservations.count { |reservation| reservation.canceled_at.nil? }
+    else
+      makeup_reservations.active.count
+    end
   end
 
   # 振替予約の締切（予約・キャンセルができる最後の時刻）。枠の開始日の○日前（ルールの設定。初期値は1日前）の 23:59:59（日本時間）
