@@ -1,6 +1,8 @@
 require "rails_helper"
 
 RSpec.describe "振替予約のキャンセル（P-05）", type: :request do
+  include ActiveJob::TestHelper
+
   # 2026年11月2日（月）の朝。振替枠は 11/16（月）10:00〜10:30。予約の締切（キャンセルの締切）は、前日（11/15）の23:59まで
   let(:now) { Time.zone.local(2026, 11, 2, 9, 0) }
   let(:guardian) { create(:guardian) }
@@ -122,6 +124,19 @@ reservation  }
 
         expect(flash[:alert]).to eq "この振替予約は、すでにキャンセルされています。"
         expect(reservation.reload.canceled_at).to eq first_canceled_at
+      end
+
+      it "キャンセルすると、先生と保護者の両方に、キャンセルのメールを送る" do
+        create(:teacher)
+
+        expect { post cancel_path }.to have_enqueued_mail(MakeupMailer, :makeup_canceled).twice
+      end
+
+      it "キャンセルできなかったとき（締切後）は、メールを送らない" do
+        create(:teacher)
+        travel_to Time.zone.local(2026, 11, 16, 0, 0)
+
+        expect { post cancel_path }.not_to have_enqueued_mail(MakeupMailer, :makeup_canceled)
       end
 
       it "ほかの家庭の振替予約は、キャンセルできない（404）" do

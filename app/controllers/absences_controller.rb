@@ -41,9 +41,10 @@ class AbsencesController < ApplicationController
   def create
     result = ConfirmAbsence.call(lesson_slot: @absence.lesson_slot, lesson_on: @absence.lesson_on,
       reported_by: current_user, makeup_slot: @makeup_slot)
-    return redirect_to student_absence_path(@student, result.absence) if result.success?
+    return redirect_after_failure(result.reason) unless result.success?
 
-    redirect_after_failure(result.reason)
+    MakeupNotifications.absence_received(result.absence) # 確定した後に、先生と保護者へメールを送る
+    redirect_to student_absence_path(@student, result.absence)
   end
 
   # P-04 完了

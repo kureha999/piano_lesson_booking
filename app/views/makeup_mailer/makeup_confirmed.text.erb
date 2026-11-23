@@ -1,0 +1,9 @@
+<%= render "greeting" %>
+【振替が確定しました】
+振替：<%= makeup_slot_text(@reservation.makeup_slot) %>
+欠席したレッスン：<%= japanese_date_with_wday(@absence.lesson_on) %> <%= @absence.lesson_slot.time_range %>
+
+<% unless @recipient.teacher? %>
+予定一覧：<%= schedule_url %>
+<% end %>
+ふりかえ帳：<%= root_url %>
