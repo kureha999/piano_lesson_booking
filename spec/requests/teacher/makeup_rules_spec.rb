@@ -26,14 +26,25 @@ RSpec.describe "振替ルールの設定（T-08）", type: :request do
       expect(Nokogiri::HTML5.parse(response.body).css("a.nav-link").map(&:text)).to include "振替ルール"
     end
 
-    it "保存すると行が1つだけ作られ、保存した値を表示する" do
+    it "保存すると行が1つだけ作られ、T-01 に戻って「保存しました」を表示する（画面遷移図③）" do
       expect { patch teacher_makeup_rule_path, params: valid_params }.to change(MakeupRule, :count).by(1)
 
-      expect(response).to redirect_to edit_teacher_makeup_rule_path
+      expect(response).to redirect_to teacher_root_path
       follow_redirect!
       expect(response.body).to include "振替ルールを保存しました。"
+      expect(MakeupRule.sole).to have_attributes(id: 1, monthly_limit: 3, valid_days: 45, absence_deadline_hours: 4, reservation_deadline_days: 2)
+
+      get edit_teacher_makeup_rule_path # 保存した値は、T-08 を開き直すと表示される
       expect(field_value("monthly_limit")).to eq "3"
-      expect(MakeupRule.sole).to have_attributes(id: 1, valid_days: 45, absence_deadline_hours: 4, reservation_deadline_days: 2)
+    end
+
+    it "保存して戻った T-01 では、初期設定の③が完了になり、リンクが外れる" do
+      patch teacher_makeup_rule_path, params: valid_params
+      follow_redirect!
+
+      setup_card = Nokogiri::HTML5.parse(response.body).at_css("section[aria-labelledby='setup-heading']")
+      expect(setup_card.css("li").map { |li| li.text.squish }).to include "✓ ③ 振替ルールを確認する（完了）"
+      expect(setup_card.css("li a").map(&:text)).not_to include "③ 振替ルールを確認する"
     end
 
     it "2回目以降は、同じ行を更新する" do

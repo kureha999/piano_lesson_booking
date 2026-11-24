@@ -12,7 +12,7 @@ module Teacher
       @makeup_rule.assign_attributes(rule_params)
 
       if SaveMakeupRule.call(@makeup_rule)
-        redirect_to edit_teacher_makeup_rule_path, notice: "振替ルールを保存しました。"
+        redirect_to teacher_root_path, notice: "振替ルールを保存しました。"
       else
         render :edit, status: :unprocessable_content
       end

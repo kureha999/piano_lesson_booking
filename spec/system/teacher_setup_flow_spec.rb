@@ -65,7 +65,7 @@ RSpec.describe "先生の初期設定の流れ", type: :system do
     expect(page).to have_content "10:00〜10:30"
     expect(MakeupSlot.pick(:capacity)).to eq 2
 
-    # ③ T-08 振替ルールの確認 → 保存する（保存後は T-08 のまま。README 12-5③ は T-01 に戻る図だが、現在の実装に合わせる）
+    # ③ T-08 振替ルールの確認 → 保存する（保存後は T-01 に戻る。README 12-5③）
     click_on "ダッシュボード"
     click_on "③ 振替ルールを確認する"
     expect(page).to have_css "h1", text: "振替ルール"
@@ -73,12 +73,11 @@ RSpec.describe "先生の初期設定の流れ", type: :system do
     fill_in "月の上限回数", with: 3
     click_button "保存する"
 
+    expect(page).to have_css "h1", text: "ダッシュボード"
     expect(page).to have_content "振替ルールを保存しました。"
     expect(MakeupRule.pick(:monthly_limit)).to eq 3
 
-    # すべて終わると、ダッシュボードの残り手順のカードは消える
-    click_on "ダッシュボード"
-    expect(page).to have_css "h1", text: "ダッシュボード"
+    # すべて終わると、T-01 の残り手順のカードは消える
     expect(page).to have_no_content "初期設定の残り手順"
   end
 
