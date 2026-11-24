@@ -45,6 +45,19 @@ RSpec.describe "予定一覧（P-05）", type: :request do
         ]
       end
 
+      it "スマホ幅でも日付・バッジ・キャンセルボタンが折り返し、ボタンが潰れない" do
+        create_slot(student, 3)
+        credit = create_credit_for(student, Date.new(2026, 11, 4))
+        create(:makeup_reservation, makeup_credit: credit, makeup_slot: create_makeup_slot(Date.new(2026, 11, 16)))
+
+        get schedule_path
+
+        row = card_of("ひなた").css("li").find { |li| li.text.include?("振替（") }
+        expect(row["class"].split).to include "flex-wrap"
+        expect(row.at_css("span.d-flex")["class"].split).to include "flex-wrap"
+        expect(row.at_css("button")["class"].split).to include "text-nowrap"
+      end
+
       it "今日から8週間（56日）先までのレッスンを表示する（12/23 まで。12/30 は含めない）" do
         create_slot(student, 3)
 
