@@ -1,10 +1,39 @@
 #!/bin/bash
-# Claude Code が `git commit` を実行する直前に動くフック（.claude/settings.json で登録）
+# Claude Code が Bash コマンドを実行する直前に動くフック（.claude/settings.json で登録）
+# コマンドが `git commit` のときだけ、次を行う。ほかのコマンドは、何もせずに通す。
 #   - main ブランチへの直接コミットを止める
 #   - RSpec と RuboCop を実行し、失敗したらコミットを止める
 # 終了コード 2 でコミットが止まり、標準エラー出力の内容が Claude に伝わります。
+#
+# 発火の判定：フックに渡される JSON の tool_input.command を読み、
+# 「&&」「||」「;」「|」・改行で区切った各コマンドのうち、先頭が `git commit` のものがあるときだけ対象にする。
+# （settings.json の `if` は、ループやヒアドキュメントを含むコマンドでは条件を判定できず、誤って発火するため）
 
-cat > /dev/null # フックに渡される JSON は使わないので読み捨てる
+input=$(cat)
+
+# tool_input.command を取り出す。jq があれば jq、なければ sed と awk（\n・\"・\\ だけ元に戻す）
+if command -v jq > /dev/null 2>&1; then
+  command_text=$(printf '%s' "$input" | jq -r '.tool_input.command // empty' 2> /dev/null)
+else
+  command_text=$(printf '%s' "$input" |
+    sed -nE 's/.*"command"[[:space:]]*:[[:space:]]*"(([^"\\]|\\.)*)".*/\1/p' |
+    awk '{ gsub(/\\n/, "\n"); gsub(/\\"/, "\""); gsub(/\\\\/, "\\"); print }')
+fi
+
+# コマンドを取り出せなかったときは、安全のため、これまでどおりチェックする
+if [ -n "$command_text" ]; then
+  is_commit=false
+  while IFS= read -r segment; do
+    segment=${segment#"${segment%%[![:space:]]*}"} # 先頭の空白を取る
+    case "$segment" in
+      "git commit" | "git commit "* | "git commit"$'\t'*) is_commit=true ;;
+    esac
+  done < <(printf '%s\n' "$command_text" | sed -e 's/&&/\n/g' -e 's/||/\n/g' -e 's/;/\n/g' -e 's/|/\n/g')
+
+  if [ "$is_commit" = false ]; then
+    exit 0
+  fi
+fi
 
 cd "${CLAUDE_PROJECT_DIR:-$(pwd)}" || exit 2
 
