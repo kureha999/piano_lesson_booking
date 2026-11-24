@@ -19,9 +19,30 @@ RSpec.describe "振替枠の一覧（T-06）", type: :request do
           expect(response).to have_http_status :ok
           expect(response.body).to include "予約数"
           expect(rows).to eq [
-            [ "2026年6月13日（土）", "15:00〜15:30", "1人", "—" ],
-            [ "2026年6月20日（土）", "10:00〜10:30", "2人", "—" ]
+            [ "2026年6月13日（土）", "15:00〜15:30", "1人", "0 / 1" ],
+            [ "2026年6月20日（土）", "10:00〜10:30", "2人", "0 / 2" ]
           ]
+        end
+      end
+
+      it "予約数を、キャンセル済みを数えずに「予約数 / 定員」で表示する（枠が複数でも N+1 を出さない）" do
+        travel_to Time.zone.local(2026, 6, 10, 12, 0) do
+          booked = create(:makeup_slot, starts_at: Time.zone.local(2026, 6, 13, 15, 0), ends_at: Time.zone.local(2026, 6, 13, 15, 30), capacity: 3)
+          canceled_only = create(:makeup_slot, starts_at: Time.zone.local(2026, 6, 14, 15, 0), ends_at: Time.zone.local(2026, 6, 14, 15, 30), capacity: 2)
+          # 固定枠は先生が1人なので、予約ごとに別の曜日の固定枠から振替権を作る
+          credits = (1..4).map do |wday|
+            lesson_slot = create(:lesson_slot, wday: wday)
+            create(:makeup_credit, absence: create(:absence, lesson_slot: lesson_slot, lesson_on: Date.new(2099, 1, 4) + wday))
+          end
+          create(:makeup_reservation, makeup_slot: booked, makeup_credit: credits[0])
+          create(:makeup_reservation, makeup_slot: booked, makeup_credit: credits[1])
+          create(:makeup_reservation, :canceled, makeup_slot: booked, makeup_credit: credits[2])
+          create(:makeup_reservation, :canceled, makeup_slot: canceled_only, makeup_credit: credits[3])
+          create(:makeup_slot, starts_at: Time.zone.local(2026, 6, 15, 15, 0), ends_at: Time.zone.local(2026, 6, 15, 15, 30), capacity: 1)
+
+          get teacher_makeup_slots_path
+
+          expect(rows.map(&:last)).to eq [ "2 / 3", "0 / 2", "0 / 1" ]
         end
       end
 

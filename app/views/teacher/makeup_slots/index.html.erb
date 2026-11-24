@@ -1,4 +1,4 @@
-<%# T-06 振替枠の一覧。予約数は、振替の予約を作る issue で表示する %>
+<%# T-06 振替枠の一覧。予約数は、キャンセル済みを数えずに「予約数 / 定員」で表示する %>
 <% content_for :title, "振替枠 | ふりかえ帳" %>
 
 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -27,8 +27,8 @@
             <td><%= japanese_date(slot.starts_at) %>（<%= I18n.t("date.abbr_day_names")[slot.starts_at.wday] %>）</td>
             <td><%= slot.starts_at.strftime("%H:%M") %>〜<%= slot.ends_at.strftime("%H:%M") %></td>
             <td><%= slot.capacity %>人</td>
-            <%# 予約数は、振替の予約（makeup_reservations）ができてから表示する %>
-            <td class="text-body-secondary">—</td>
+            <%# 予約数は、キャンセル済みを数えず、定員と並べて「予約数 / 定員」の形で表示する %>
+            <td><%= slot.reserved_count %> / <%= slot.capacity %></td>
             <td class="text-end"><%= link_to "編集", edit_teacher_makeup_slot_path(slot), aria: { label: "#{slot.period_text}の振替枠を編集" } %></td>
           </tr>
         <% end %>
